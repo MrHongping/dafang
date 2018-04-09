@@ -54,10 +54,11 @@ class ShellList(wx.Panel):
         for text in config.MANAGE_MENU.split():
             item = self.manageMenu.Append(-1, text)
             self.shellListCtrl.Bind(wx.EVT_MENU, self.OnManageMenuItemSelected, item)
+
         self.UpdateShellList()
 
     def UpdateShellList(self):
-        self.shellEntityList=DatabaseHelper.getShellEntityList()
+        self.shellEntityList = DatabaseHelper.getShellEntityList()
         self.shellListCtrl.DeleteAllItems()
         for shellEntity in self.shellEntityList:
             index = self.shellListCtrl.InsertItem(self.shellListCtrl.GetItemCount(), shellEntity.shell_address)
@@ -69,25 +70,42 @@ class ShellList(wx.Panel):
             self.shellListCtrl.SetItem(index, 6, shellEntity.httpSettingDefault)
             self.shellListCtrl.SetItem(index, 7, shellEntity.tunnelSettingDefault)
             self.shellListCtrl.SetItem(index, 8, shellEntity.createTime)
+            self.shellListCtrl.SetItemData(index,shellEntity.shell_id)
         self.shellListCtrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+
+    def ShowShellManageDialog(self,shellEntity=None):
+        dlg = ShellManageDialog(self, -1, "Shell设置", size=(500, -1), style=wx.DEFAULT_DIALOG_STYLE,shellEntity=shellEntity)
+
+        dlg.CenterOnScreen()
+
+        code=dlg.ShowModal()
+        print code
+        if code:
+            self.UpdateShellList()
 
     def OnManageMenuItemSelected(self, event):
         item = self.manageMenu.FindItemById(event.GetId())
         text = item.GetText()
-        dlg = ShellManageDialog(self, -1, "Shell设置", size=(500, -1),
-                                style=wx.DEFAULT_DIALOG_STYLE,
-                                )
-        dlg.CenterOnScreen()
-
-        if dlg.ShowModal():
-            self.UpdateShellList()
-
-        # dlg.Destroy()
+        if text == u'添加':
+            self.ShowShellManageDialog()
+        else:
+            wx.MessageBox('献给小落落！')
 
     def OnShellManageMenuItemSelected(self, event):
         item = self.shellManageMenu.FindItemById(event.GetId())
         text = item.GetText()
-        wx.MessageBox("You selected item '%s'" % text)
+        if text == u'添加':
+            self.ShowShellManageDialog()
+        if text==u'编辑':
+            self.ShowShellManageDialog(self.shellEntityList[self.currentItem])
+        if text ==u'删除':
+            DatabaseHelper.deleteShellEntityByID(self.shellListCtrl.GetItemData(self.currentItem))
+            self.UpdateShellList()
+        if text==u'虚拟终端':
+            self.parent.OpenVirtualConsole()
+        if text==u'文件管理':
+            shellEntity = self.shellEntityList[self.currentItem]
+            self.parent.OpenFileTree(shellEntity)
 
     #选中条目
     def OnItemSelected(self, event):

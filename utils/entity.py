@@ -14,7 +14,7 @@ import sys
 
 class shell_entity:
 
-    def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,httpSettingDefault,tunnelSettingDefault,createTime):
+    def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,httpSettingDefault,tunnelSettingDefault,createTime,shell_id=-1):
         self.shell_address=shell_address
         self.shell_password=shell_password
         self.shell_script_type=shell_script_type
@@ -25,6 +25,7 @@ class shell_entity:
         self.httpSettingDefault=httpSettingDefault
         self.tunnelSettingDefault=tunnelSettingDefault
         self.createTime=createTime
+        self.shell_id=shell_id
 
     def getShellHost(self,shell_address):
         proto_host_path = urllib.splittype(shell_address)

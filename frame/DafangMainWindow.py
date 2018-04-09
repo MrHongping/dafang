@@ -6,12 +6,16 @@
 @file: DafangMainWindow.py
 @time: 2018/4/2 16:55
 """
-import wx, wx.aui, sys
+import sys
+
+import wx
+import wx.aui
 
 sys.path.append("..")
 import ShellListCtrl
 import FileManagerCtrl
 import FileEditorCtrl
+import VirtualConsoleCtrl
 
 
 class MainWindow(wx.Panel):
@@ -37,7 +41,11 @@ class MainWindow(wx.Panel):
     def OpenFileEditor(self, fileName, fileContent):
         win = FileEditorCtrl.FileEditor(self, self.log, fileContent)
         index = self.nb.AddPage(win, fileName)
-        print index
+        self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
+
+    def OpenVirtualConsole(self):
+        win = VirtualConsoleCtrl.VirtualConsole(self, self.log)
+        index = self.nb.AddPage(win, 'console')
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
 
 def runTest(frame, nb, log):

@@ -28,7 +28,7 @@ class JspShell:
         payload = {self.shellEntity.shell_password: 'A'}
         r=requests.post(self.shellEntity.shell_address,payload)
         print r.text
-        return '/root/Downloads/apache-tomcat-7.0.85/webapps/examples/jsp'
+        return self.parseResponse(r.text)
 
     def getDirectoryContent(self,path):
         payload = {self.shellEntity.shell_password: 'B','z1':path}

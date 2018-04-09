@@ -16,7 +16,7 @@ from utils.entity import shell_entity
 class ShellManageDialog(wx.Dialog):
     def __init__(
             self, parent, id, title, size=wx.DefaultSize, pos=wx.DefaultPosition,
-            style=wx.DEFAULT_DIALOG_STYLE, name='dialog'
+            style=wx.DEFAULT_DIALOG_STYLE, name='dialog',shellEntity=None
             ):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
                            size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
@@ -173,10 +173,23 @@ class ShellManageDialog(wx.Dialog):
         DialogMainSizer.Add(socksTunnelStaticBoxSizer, 0, wx.EXPAND | wx.ALL, 5)
 
         saveDataBaseBtn = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveDataBaseBtnOK = wx.Button(self, -1,label='保存')
+
+        if shellEntity:
+            self.textCtrlShellAddress.SetValue(shellEntity.shell_address)
+            self.textCtrlShellPassword.SetValue(shellEntity.shell_password)
+            self.textCtrlShellDatabase.SetValue(shellEntity.database_info)
+            self.textCtrlRemark.SetValue(shellEntity.shell_remark)
+            self.saveDataBaseBtnOK = wx.Button(self, -1, label='修改')
+            self.saveDataBaseBtnOK.Bind(wx.EVT_BUTTON, self.OnUpdateBtnClick)
+            self.shellID=shellEntity.shell_id
+        else:
+            self.saveDataBaseBtnOK = wx.Button(self, -1, label='保存')
+            self.saveDataBaseBtnOK.Bind(wx.EVT_BUTTON, self.OnSaveBtnClick)
+
         saveDataBaseBtn.Add(self.saveDataBaseBtnOK, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-        self.saveDataBaseBtnCancel = wx.Button(self, -1,label='退出')
+        self.saveDataBaseBtnCancel = wx.Button(self, -1, label='退出')
         saveDataBaseBtn.Add(self.saveDataBaseBtnCancel, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
 
         DialogMainSizer.Add(saveDataBaseBtn, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
@@ -189,11 +202,12 @@ class ShellManageDialog(wx.Dialog):
         # Connect Events
         self.httpDefaultcheckBox2.Bind(wx.EVT_CHECKBOX, self.OnHttpDefaultCheck)
         self.sockDefaultcheckBox3.Bind(wx.EVT_CHECKBOX, self.OnTunnelCheck)
-        self.saveDataBaseBtnOK.Bind(wx.EVT_BUTTON, self.OnSaveBtnClick)
+
         self.saveDataBaseBtnCancel.Bind(wx.EVT_BUTTON, self.OnCancelBtnClick)
 
         self.httpSettingDefault=True
         self.tunnelSettingDefault=True
+
 
     def OnHttpDefaultCheck(self, event):
         if event.IsChecked():
@@ -217,37 +231,53 @@ class ShellManageDialog(wx.Dialog):
             self.tunnelSettingDefault=False
         event.Skip()
 
-    def OnSaveBtnClick(self, event):
-
-        shell_address=self.textCtrlShellAddress.GetValue()
+    def getSettingResult(self):
+        shell_address = self.textCtrlShellAddress.GetValue()
 
         if not shell_address:
             wx.MessageBox('Shell地址不能为空')
             return
 
-        shell_password=self.textCtrlShellPassword.GetValue()
+        shell_password = self.textCtrlShellPassword.GetValue()
 
         if not shell_password:
             wx.MessageBox('Shell密码不能为空')
             return
 
-        shell_script_type=self.comboBoxShellScriptType.GetValue()
-        print shell_script_type
+        shell_script_type = self.comboBoxShellScriptType.GetValue()
         if not shell_script_type:
             wx.MessageBox('请选择Shell脚本类型')
+            return
 
-        shell_encode_type=self.comboBoxShellEncodeType.GetValue()
-        print shell_encode_type
+        shell_encode_type = self.comboBoxShellEncodeType.GetValue()
         if not shell_encode_type:
             wx.MessageBox('请选择Shell编码类型')
+            return
 
-        database_info =self.textCtrlShellDatabase.GetValue()
-        shell_remark =self.textCtrlRemark.GetValue()
+        database_info = self.textCtrlShellDatabase.GetValue()
+        shell_remark = self.textCtrlRemark.GetValue()
 
         nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        shellEntity=shell_entity(shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,self.httpSettingDefault,self.tunnelSettingDefault,nowTime)
+        return shell_entity(shell_address, shell_password, shell_script_type, shell_encode_type, database_info,
+                                   shell_remark, self.httpSettingDefault, self.tunnelSettingDefault, nowTime)
+
+    def OnSaveBtnClick(self, event):
+
+        shellEntity=self.getSettingResult()
+        if not shellEntity:
+            return
         DatabaseHelper.saveShellEntity(shellEntity)
+        self.SetReturnCode(1)
+        self.Destroy()
+        event.Skip()
+
+    def OnUpdateBtnClick(self, event):
+
+        shellEntity = self.getSettingResult()
+        if not shellEntity:
+            return
+        DatabaseHelper.updateShellEntityByID(shellEntity,self.shellID)
         self.SetReturnCode(1)
         self.Destroy()
         event.Skip()
