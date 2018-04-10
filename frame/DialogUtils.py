@@ -10,35 +10,34 @@ import wx,sys,datetime
 
 sys.path.append("..")
 
+from utils import config
 from utils.dbHelper import DatabaseHelper
-from utils.entity import shell_entity
+from utils.entity import *
 
 class ShellManageDialog(wx.Dialog):
     def __init__(
             self, parent, id, title, size=wx.DefaultSize, pos=wx.DefaultPosition,
             style=wx.DEFAULT_DIALOG_STYLE, name='dialog',shellEntity=None
             ):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=title, pos=wx.DefaultPosition,
                            size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
-        DialogMainSizer = wx.BoxSizer(wx.VERTICAL)
-
-        shellInforSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Shell信息"), wx.VERTICAL)
+        shellInforSizer = wx.BoxSizer(wx.VERTICAL)
 
         shellAddressBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText1 = wx.StaticText(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"地   址：", wx.DefaultPosition,
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"地   址：", wx.DefaultPosition,
                                            wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         shellAddressBoxSizer.Add(self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.textCtrlShellAddress = wx.TextCtrl(shellInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
+        self.textCtrlShellAddress = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
                                                 wx.DefaultPosition, wx.Size(300, -1), 0)
         shellAddressBoxSizer.Add(self.textCtrlShellAddress, 0, wx.ALL, 5)
 
-        self.textCtrlShellPassword = wx.TextCtrl(shellInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
+        self.textCtrlShellPassword = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
                                                  wx.DefaultPosition, wx.Size(90, -1), 0)
         shellAddressBoxSizer.Add(self.textCtrlShellPassword, 0, wx.ALL, 5)
 
@@ -46,12 +45,12 @@ class ShellManageDialog(wx.Dialog):
 
         shellDatabaseBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText2 = wx.StaticText(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"数据库：", wx.DefaultPosition,
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"数据库：", wx.DefaultPosition,
                                            wx.DefaultSize, 0)
         self.m_staticText2.Wrap(80)
         shellDatabaseBoxSizer.Add(self.m_staticText2, 0, wx.ALL, 5)
 
-        self.textCtrlShellDatabase = wx.TextCtrl(shellInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
+        self.textCtrlShellDatabase = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
                                                  wx.DefaultPosition, wx.Size(400, 80), 0)
         shellDatabaseBoxSizer.Add(self.textCtrlShellDatabase, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
@@ -59,12 +58,12 @@ class ShellManageDialog(wx.Dialog):
 
         shellRemarkBoxSzier = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText3 = wx.StaticText(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"备   注：", wx.DefaultPosition,
+        self.m_staticText3 = wx.StaticText(self, wx.ID_ANY, u"备   注：", wx.DefaultPosition,
                                            wx.DefaultSize, 0)
         self.m_staticText3.Wrap(-1)
         shellRemarkBoxSzier.Add(self.m_staticText3, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.textCtrlRemark = wx.TextCtrl(shellInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+        self.textCtrlRemark = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                           wx.Size(400, -1), 0)
         shellRemarkBoxSzier.Add(self.textCtrlRemark, 0, wx.ALL, 5)
 
@@ -72,105 +71,22 @@ class ShellManageDialog(wx.Dialog):
 
         shellTypeBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText8 = wx.StaticText(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"类   型：", wx.DefaultPosition,
+        self.m_staticText8 = wx.StaticText(self, wx.ID_ANY, u"类   型：", wx.DefaultPosition,
                                            wx.DefaultSize, 0)
         self.m_staticText8.Wrap(-1)
         shellTypeBoxSizer.Add(self.m_staticText8, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        comboBoxShellScriptTypeChoices = [u"PHP", u"JSP"]
-        self.comboBoxShellScriptType = wx.ComboBox(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"脚本类型",
-                                                   wx.DefaultPosition, wx.Size(100, -1), comboBoxShellScriptTypeChoices,
+        self.comboBoxShellScriptType = wx.ComboBox(self, wx.ID_ANY, u"脚本类型",
+                                                   wx.DefaultPosition, wx.Size(100, -1), config.SHELL_SCRIPT_LIST,
                                                    0)
         shellTypeBoxSizer.Add(self.comboBoxShellScriptType, 0, wx.ALL, 5)
 
-        comboBoxShellEncodeTypeChoices = [u"UTF-8", u"GB2312"]
-        self.comboBoxShellEncodeType = wx.ComboBox(shellInforSizer.GetStaticBox(), wx.ID_ANY, u"编码类型",
-                                                   wx.DefaultPosition, wx.Size(100, -1), comboBoxShellEncodeTypeChoices,
+        self.comboBoxShellEncodeType = wx.ComboBox(self, wx.ID_ANY, u"编码类型",
+                                                   wx.DefaultPosition, wx.Size(100, -1), config.SHELL_ENCODE_LIST,
                                                    0)
         shellTypeBoxSizer.Add(self.comboBoxShellEncodeType, 0, wx.ALL, 5)
 
         shellInforSizer.Add(shellTypeBoxSizer, 1, wx.EXPAND, 5)
-
-        DialogMainSizer.Add(shellInforSizer, 0, wx.ALL, 5)
-
-        httpInforSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Http请求设置"), wx.VERTICAL)
-
-        self.httpDefaultcheckBox2 = wx.CheckBox(httpInforSizer.GetStaticBox(), wx.ID_ANY, u"使用默认设置", wx.DefaultPosition,
-                                                wx.DefaultSize, 0)
-        self.httpDefaultcheckBox2.SetValue(True)
-        httpInforSizer.Add(self.httpDefaultcheckBox2, 0, wx.ALL, 5)
-
-        httpUABoxSizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText4 = wx.StaticText(httpInforSizer.GetStaticBox(), wx.ID_ANY, u"User-Agent:", wx.DefaultPosition,
-                                           wx.Size(-1, -1), 0)
-        self.m_staticText4.Wrap(-1)
-        httpUABoxSizer.Add(self.m_staticText4, 0, wx.ALL, 5)
-
-        self.textCtrlUserAgent = wx.TextCtrl(httpInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
-                                             wx.DefaultPosition, wx.Size(380, -1), 0)
-        self.textCtrlUserAgent.Enable(False)
-
-        httpUABoxSizer.Add(self.textCtrlUserAgent, 0, wx.ALL, 5)
-
-        httpInforSizer.Add(httpUABoxSizer, 1, wx.EXPAND, 5)
-
-        httpCookieBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText5 = wx.StaticText(httpInforSizer.GetStaticBox(), wx.ID_ANY, u"      Cookie:",
-                                           wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText5.Wrap(-1)
-        httpCookieBoxSizer.Add(self.m_staticText5, 0, wx.ALL, 5)
-
-        self.textCtrlCookie = wx.TextCtrl(httpInforSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                          wx.Size(380, 50), 0 | wx.VSCROLL)
-        self.textCtrlCookie.Enable(False)
-
-        httpCookieBoxSizer.Add(self.textCtrlCookie, 0, wx.ALL, 5)
-
-        httpInforSizer.Add(httpCookieBoxSizer, 0, 0, 5)
-
-        DialogMainSizer.Add(httpInforSizer, 0, wx.EXPAND | wx.ALL, 5)
-
-        socksTunnelStaticBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Socks内网通道"), wx.VERTICAL)
-
-        self.sockDefaultcheckBox3 = wx.CheckBox(socksTunnelStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"不启用内网通道",
-                                                wx.DefaultPosition, wx.DefaultSize, 0)
-        self.sockDefaultcheckBox3.SetValue(True)
-        socksTunnelStaticBoxSizer.Add(self.sockDefaultcheckBox3, 0, wx.ALL, 5)
-
-        socksTunnelPortBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText7 = wx.StaticText(socksTunnelStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"侦听端口：",
-                                           wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText7.Wrap(-1)
-        socksTunnelPortBoxSizer.Add(self.m_staticText7, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
-        self.textCtrlTunnelPort = wx.TextCtrl(socksTunnelStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
-                                              wx.DefaultPosition, wx.DefaultSize, 0)
-        self.textCtrlTunnelPort.Enable(False)
-
-        socksTunnelPortBoxSizer.Add(self.textCtrlTunnelPort, 0, wx.ALL, 5)
-
-        socksTunnelStaticBoxSizer.Add(socksTunnelPortBoxSizer, 1, wx.EXPAND, 5)
-
-        socksTunnelAddressBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText6 = wx.StaticText(socksTunnelStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"侦听地址：",
-                                           wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText6.Wrap(-1)
-        socksTunnelAddressBoxSizer.Add(self.m_staticText6, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
-        comboBoxTunnelAddressChoices = []
-        self.comboBoxTunnelAddress = wx.ComboBox(socksTunnelStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"选择地址",
-                                                 wx.DefaultPosition, wx.Size(150, -1), comboBoxTunnelAddressChoices, 0)
-        self.comboBoxTunnelAddress.Enable(False)
-
-        socksTunnelAddressBoxSizer.Add(self.comboBoxTunnelAddress, 0, wx.ALL, 5)
-
-        socksTunnelStaticBoxSizer.Add(socksTunnelAddressBoxSizer, 1, wx.EXPAND, 5)
-
-        DialogMainSizer.Add(socksTunnelStaticBoxSizer, 0, wx.EXPAND | wx.ALL, 5)
 
         saveDataBaseBtn = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -179,57 +95,35 @@ class ShellManageDialog(wx.Dialog):
             self.textCtrlShellPassword.SetValue(shellEntity.shell_password)
             self.textCtrlShellDatabase.SetValue(shellEntity.database_info)
             self.textCtrlRemark.SetValue(shellEntity.shell_remark)
+            self.comboBoxShellScriptType.SetValue(shellEntity.shell_script_type)
+            self.comboBoxShellEncodeType.SetValue(shellEntity.shell_encode_type)
+
             self.saveDataBaseBtnOK = wx.Button(self, -1, label='修改')
             self.saveDataBaseBtnOK.Bind(wx.EVT_BUTTON, self.OnUpdateBtnClick)
             self.shellID=shellEntity.shell_id
         else:
             self.saveDataBaseBtnOK = wx.Button(self, -1, label='保存')
             self.saveDataBaseBtnOK.Bind(wx.EVT_BUTTON, self.OnSaveBtnClick)
+            self.httpSettingDefault = True
+            self.tunnelSettingDefault = True
 
         saveDataBaseBtn.Add(self.saveDataBaseBtnOK, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         self.saveDataBaseBtnCancel = wx.Button(self, -1, label='退出')
         saveDataBaseBtn.Add(self.saveDataBaseBtnCancel, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
+        self.m_staticline1 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        shellInforSizer.Add(self.m_staticline1, 0, wx.EXPAND | wx.ALL, 5)
 
-        DialogMainSizer.Add(saveDataBaseBtn, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        shellInforSizer.Add(saveDataBaseBtn,1, wx.ALIGN_RIGHT, 5)
 
-        self.SetSizer(DialogMainSizer)
+        self.SetSizer(shellInforSizer)
         self.Layout()
-        DialogMainSizer.Fit(self)
+        shellInforSizer.Fit(self)
 
         self.Centre(wx.BOTH)
 
         # Connect Events
-        self.httpDefaultcheckBox2.Bind(wx.EVT_CHECKBOX, self.OnHttpDefaultCheck)
-        self.sockDefaultcheckBox3.Bind(wx.EVT_CHECKBOX, self.OnTunnelCheck)
-
         self.saveDataBaseBtnCancel.Bind(wx.EVT_BUTTON, self.OnCancelBtnClick)
-
-        self.httpSettingDefault=True
-        self.tunnelSettingDefault=True
-
-
-    def OnHttpDefaultCheck(self, event):
-        if event.IsChecked():
-            self.textCtrlCookie.Enable(False)
-            self.textCtrlUserAgent.Enable(False)
-            self.httpSettingDefault=True
-        else:
-            self.textCtrlCookie.Enable(True)
-            self.textCtrlUserAgent.Enable(True)
-            self.httpSettingDefault = False
-        event.Skip()
-
-    def OnTunnelCheck(self, event):
-        if event.IsChecked():
-            self.textCtrlTunnelPort.Enable(False)
-            self.comboBoxTunnelAddress.Enable(False)
-            self.tunnelSettingDefault=True
-        else:
-            self.textCtrlTunnelPort.Enable(True)
-            self.comboBoxTunnelAddress.Enable(True)
-            self.tunnelSettingDefault=False
-        event.Skip()
 
     def getSettingResult(self):
         shell_address = self.textCtrlShellAddress.GetValue()
@@ -245,12 +139,12 @@ class ShellManageDialog(wx.Dialog):
             return
 
         shell_script_type = self.comboBoxShellScriptType.GetValue()
-        if not shell_script_type:
+        if shell_script_type not in config.SHELL_SCRIPT_LIST:
             wx.MessageBox('请选择Shell脚本类型')
             return
 
         shell_encode_type = self.comboBoxShellEncodeType.GetValue()
-        if not shell_encode_type:
+        if shell_encode_type not in config.SHELL_ENCODE_LIST:
             wx.MessageBox('请选择Shell编码类型')
             return
 
@@ -260,14 +154,16 @@ class ShellManageDialog(wx.Dialog):
         nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         return shell_entity(shell_address, shell_password, shell_script_type, shell_encode_type, database_info,
-                                   shell_remark, self.httpSettingDefault, self.tunnelSettingDefault, nowTime)
+                                   shell_remark, nowTime)
 
     def OnSaveBtnClick(self, event):
 
         shellEntity=self.getSettingResult()
         if not shellEntity:
             return
+
         DatabaseHelper.saveShellEntity(shellEntity)
+
         self.SetReturnCode(1)
         self.Destroy()
         event.Skip()
@@ -285,3 +181,214 @@ class ShellManageDialog(wx.Dialog):
     def OnCancelBtnClick(self, event):
         self.Destroy()
         event.Skip()
+
+
+class TunnelSettingDialog(wx.Dialog):
+    def __init__(self, parent,title,shellEntity):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=title, pos=wx.DefaultPosition,
+                           size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.shellEntity=shellEntity
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer1 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"侦听端口：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1.Wrap(-1)
+        bSizer2.Add(self.m_staticText1, 0, wx.ALL, 5)
+
+        self.textCtrlListenPort = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer2.Add(self.textCtrlListenPort, 0, wx.ALL, 5)
+
+        bSizer1.Add(bSizer2, 1, wx.EXPAND, 5)
+
+        bSizer3 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"侦听地址：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+        bSizer3.Add(self.m_staticText2, 0, wx.ALL, 5)
+
+        self.comboBoxListenIP = wx.ComboBox(self, wx.ID_ANY, u"选择地址", wx.DefaultPosition, wx.DefaultSize,
+                                            config.TUNNEL_LISTEN_IP_LIST, 0)
+        bSizer3.Add(self.comboBoxListenIP, 0, wx.ALL, 5)
+
+        bSizer1.Add(bSizer3, 1, wx.EXPAND, 5)
+
+        bSizer4 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.buttonStartSocks = wx.Button(self, wx.ID_ANY, u"开启", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer4.Add(self.buttonStartSocks, 0, wx.ALL, 5)
+
+        self.buttonCancel = wx.Button(self, wx.ID_ANY, u"退出", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer4.Add(self.buttonCancel, 0, wx.ALL, 5)
+
+        self.m_staticline1 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        bSizer1.Add(self.m_staticline1, 0, wx.EXPAND | wx.ALL, 5)
+
+        bSizer1.Add(bSizer4, 1, wx.EXPAND, 5)
+
+        self.SetSizer(bSizer1)
+        self.Layout()
+        bSizer1.Fit(self)
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.buttonStartSocks.Bind(wx.EVT_BUTTON, self.OnStartBtnClick)
+        self.buttonCancel.Bind(wx.EVT_BUTTON, self.OnCancelBtnClick)
+
+    def __del__(self):
+        pass
+
+    def getSettingResult(self):
+        tunnelPort = self.textCtrlListenPort.GetValue()
+        if not tunnelPort:
+            wx.MessageBox('内网代理侦听端口未设置')
+            return
+
+        tunnelIP = self.comboBoxListenIP.GetValue()
+        if tunnelIP not in config.TUNNEL_LISTEN_IP_LIST:
+            wx.MessageBox('内网代理侦听IP未设置')
+            return
+
+        return TunnelSettingEntity(tunnelPort, tunnelIP)
+
+    # Virtual event handlers, overide them in your derived class
+    def OnStartBtnClick(self, event):
+
+        tunnelSettingEntity = self.getSettingResult()
+
+        isSetted = DatabaseHelper.getTunnelSettingEntityByShellID(self.shellEntity.shellID)
+        if isSetted:
+            DatabaseHelper.updateTunnelSettingEntity(tunnelSettingEntity)
+        else:
+            DatabaseHelper.saveTunnelSettingEntity(tunnelSettingEntity)
+
+        self.SetReturnCode(1)
+        self.Destroy()
+        event.Skip()
+
+        event.Skip()
+
+    def OnCancelBtnClick(self, event):
+        event.Skip()
+
+
+class HttpSettingDialog(wx.Dialog):
+    def __init__(self, parent,title,shellEntity):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=title, pos=wx.DefaultPosition,
+                           size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.shellEntity = shellEntity
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer5 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText3 = wx.StaticText(self, wx.ID_ANY, u"UA示例：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText3.Wrap(-1)
+        bSizer6.Add(self.m_staticText3, 0, wx.ALL, 5)
+
+        self.comboBoxUserAgentExamples = wx.ComboBox(self, wx.ID_ANY, u"选择浏览器User-Agent", wx.DefaultPosition,
+                                                     wx.Size(300, -1), config.USER_AGENT_LIST, 0)
+        bSizer6.Add(self.comboBoxUserAgentExamples, 0, wx.ALL, 5)
+
+        bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
+
+        bSizer8 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText31 = wx.StaticText(self, wx.ID_ANY, u"UA配置：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText31.Wrap(-1)
+        bSizer8.Add(self.m_staticText31, 0, wx.ALL, 5)
+
+        self.textCtrlUserAgent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, 50), wx.TE_MULTILINE)
+        bSizer8.Add(self.textCtrlUserAgent, 0, wx.ALL, 5)
+
+        bSizer5.Add(bSizer8, 0, wx.EXPAND, 5)
+
+        bSizer7 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText4 = wx.StaticText(self, wx.ID_ANY, u"Cookie：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText4.Wrap(-1)
+        bSizer7.Add(self.m_staticText4, 0, wx.ALL, 5)
+
+        self.textCtrlCookie = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, 100),
+                                          wx.TE_MULTILINE | wx.VSCROLL)
+        bSizer7.Add(self.textCtrlCookie, 0, wx.ALL, 5)
+
+        bSizer5.Add(bSizer7, 0, wx.EXPAND, 5)
+
+        self.m_staticline1 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        bSizer5.Add(self.m_staticline1, 0, wx.EXPAND | wx.ALL, 5)
+
+        bSizer9 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.buttonSave = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer9.Add(self.buttonSave, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.buttonCancel = wx.Button(self, wx.ID_ANY, u"退出", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer9.Add(self.buttonCancel, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 5)
+
+        bSizer5.Add(bSizer9, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_RIGHT, 5)
+
+        self.SetSizer(bSizer5)
+        self.Layout()
+        bSizer5.Fit(self)
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.buttonSave.Bind(wx.EVT_BUTTON, self.btnSaveClick)
+        self.buttonCancel.Bind(wx.EVT_BUTTON, self.cancelBtnClick)
+
+        self.Bind(wx.EVT_COMBOBOX, self.EvtComboBox, self.comboBoxUserAgentExamples)
+
+        httpSettingEntity=DatabaseHelper.getHttpSettingEntityByShellID(self.shellEntity.shell_id)
+        if httpSettingEntity:
+            self.textCtrlUserAgent.SetValue(httpSettingEntity.user_agent)
+            self.textCtrlCookie.SetValue(httpSettingEntity.cookie)
+
+    def __del__(self):
+        pass
+
+    def EvtComboBox(self,evt):
+        if evt.GetString() in config.USER_AGENT_LIST:
+            self.textCtrlUserAgent.SetValue(evt.GetString())
+        evt.Skip()
+
+    def getSettingResult(self):
+        userAgent = self.textCtrlUserAgent.GetValue()
+        if not userAgent:
+            wx.MessageBox('Http User-Agent未设置')
+            return
+
+        cookies = self.textCtrlCookie.GetValue()
+        if not cookies:
+            wx.MessageBox('Http Cookie未设置')
+            return
+
+        return HttpSettingEntity(cookies,userAgent, self.shellEntity.shell_id)
+
+    def btnSaveClick(self, event):
+
+        httpSettingEntity=self.getSettingResult()
+
+        isSetted = DatabaseHelper.getHttpSettingEntityByShellID(self.shellEntity.shell_id)
+        if isSetted:
+            DatabaseHelper.updateHttpSettingEntity(httpSettingEntity)
+        else:
+            DatabaseHelper.saveHttpSettingEntity(httpSettingEntity)
+
+        self.SetReturnCode(1)
+        self.Destroy()
+        event.Skip()
+
+    def cancelBtnClick(self, event):
+        self.Destroy()
+        event.Skip()
+

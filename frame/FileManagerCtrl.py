@@ -4,6 +4,7 @@ sys.path.append("..")
 import DafangFileTreeCtrl
 import DafangFileListCtrl
 from utils.entity import shell_entity
+from utils.shell import ShellTools
 
 class FileManager(wx.Panel):
 
@@ -12,6 +13,7 @@ class FileManager(wx.Panel):
         
         vsizer1 = wx.BoxSizer(orient=wx.HORIZONTAL)  
 
+        self.shellEntity=shellEntity
         self.parent=parent
         self.log=log  
         
@@ -26,4 +28,6 @@ class FileManager(wx.Panel):
         self.SetSizer(vsizer1)
 
     def OpenNewFileEditor(self,fileName):
-        self.parent.OpenFileEditor(fileName,'123123')
+        path=self.DafangFileTreeCtrl.getSelectedItemPath()
+        fileContent=ShellTools.getShellTools(self.shellEntity).getFileContent(path+'/'+fileName)
+        self.parent.OpenFileEditor(fileName,fileContent)

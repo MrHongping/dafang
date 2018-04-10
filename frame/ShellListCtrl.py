@@ -3,7 +3,7 @@ import sys
 import wx
 
 sys.path.append("..")
-from DialogUtils import ShellManageDialog
+from DialogUtils import *
 from utils.entity import shell_entity
 from utils import config
 from utils.dbHelper import DatabaseHelper
@@ -28,9 +28,7 @@ class ShellList(wx.Panel):
         self.shellListCtrl.InsertColumn(3,u"编码类型", format=wx.LIST_FORMAT_CENTER, width=100)
         self.shellListCtrl.InsertColumn(4,u"数据库配置", format=wx.LIST_FORMAT_CENTER, width=100)
         self.shellListCtrl.InsertColumn(5,u"备注", format=wx.LIST_FORMAT_CENTER, width=200)
-        self.shellListCtrl.InsertColumn(6,u"Http默认设置",format=wx.LIST_FORMAT_CENTER,width=100)
-        self.shellListCtrl.InsertColumn(7,u"Tunnel默认设置",format=wx.LIST_FORMAT_CENTER,width=100)
-        self.shellListCtrl.InsertColumn(8,u"创建时间",format=wx.LIST_FORMAT_CENTER,width=200)
+        self.shellListCtrl.InsertColumn(6,u"创建时间",format=wx.LIST_FORMAT_CENTER,width=200)
 
         #####事件绑定
 
@@ -67,21 +65,26 @@ class ShellList(wx.Panel):
             self.shellListCtrl.SetItem(index, 3, shellEntity.shell_encode_type)
             self.shellListCtrl.SetItem(index, 4, shellEntity.database_info)
             self.shellListCtrl.SetItem(index, 5, shellEntity.shell_remark)
-            self.shellListCtrl.SetItem(index, 6, shellEntity.httpSettingDefault)
-            self.shellListCtrl.SetItem(index, 7, shellEntity.tunnelSettingDefault)
-            self.shellListCtrl.SetItem(index, 8, shellEntity.createTime)
+            self.shellListCtrl.SetItem(index, 6, shellEntity.createTime)
             self.shellListCtrl.SetItemData(index,shellEntity.shell_id)
         self.shellListCtrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
 
     def ShowShellManageDialog(self,shellEntity=None):
         dlg = ShellManageDialog(self, -1, "Shell设置", size=(500, -1), style=wx.DEFAULT_DIALOG_STYLE,shellEntity=shellEntity)
-
         dlg.CenterOnScreen()
-
         code=dlg.ShowModal()
-        print code
         if code:
             self.UpdateShellList()
+
+    def ShowHttpSettingDialog(self,shellEntity=None):
+        dlg = HttpSettingDialog(self, "Http设置",shellEntity)
+        dlg.CenterOnScreen()
+        code=dlg.ShowModal()
+
+    def ShowTunnelSettingDialog(self,shellEntity=None):
+        dlg = TunnelSettingDialog(self, "Tunnel设置",shellEntity)
+        dlg.CenterOnScreen()
+        code=dlg.ShowModal()
 
     def OnManageMenuItemSelected(self, event):
         item = self.manageMenu.FindItemById(event.GetId())
@@ -94,18 +97,29 @@ class ShellList(wx.Panel):
     def OnShellManageMenuItemSelected(self, event):
         item = self.shellManageMenu.FindItemById(event.GetId())
         text = item.GetText()
+
         if text == u'添加':
             self.ShowShellManageDialog()
+
         if text==u'编辑':
             self.ShowShellManageDialog(self.shellEntityList[self.currentItem])
+
         if text ==u'删除':
             DatabaseHelper.deleteShellEntityByID(self.shellListCtrl.GetItemData(self.currentItem))
             self.UpdateShellList()
+
         if text==u'虚拟终端':
             self.parent.OpenVirtualConsole()
+
         if text==u'文件管理':
             shellEntity = self.shellEntityList[self.currentItem]
             self.parent.OpenFileTree(shellEntity)
+
+        if text==u'HTTP参数':
+            self.ShowHttpSettingDialog(self.shellEntityList[self.currentItem])
+
+        if text==u'内网通道':
+            self.ShowTunnelSettingDialog(self.shellEntityList[self.currentItem])
 
     #选中条目
     def OnItemSelected(self, event):

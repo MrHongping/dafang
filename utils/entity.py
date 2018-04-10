@@ -14,7 +14,7 @@ import sys
 
 class shell_entity:
 
-    def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,httpSettingDefault,tunnelSettingDefault,createTime,shell_id=-1):
+    def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,createTime,shell_id=-1):
         self.shell_address=shell_address
         self.shell_password=shell_password
         self.shell_script_type=shell_script_type
@@ -22,8 +22,6 @@ class shell_entity:
         self.shell_host=self.getShellHost(shell_address)
         self.database_info=database_info
         self.shell_remark=shell_remark
-        self.httpSettingDefault=httpSettingDefault
-        self.tunnelSettingDefault=tunnelSettingDefault
         self.createTime=createTime
         self.shell_id=shell_id
 
@@ -44,13 +42,15 @@ class shell_entity:
 
 class HttpSettingEntity:
 
-    def __init__(self,cookie,user_agent):
+    def __init__(self,cookie,user_agent,shellID=-1):
         self.cookie=cookie
         self.user_agent=user_agent
+        self.shellID=shellID
 
 class TunnelSettingEntity:
 
-    def __init__(self,port,IP):
+    def __init__(self,port,IP,shellID):
         self.port=port
         self.IP=IP
+        self.shellID=shellID
 

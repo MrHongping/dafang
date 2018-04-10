@@ -3,8 +3,7 @@
 import  wx,sys
 
 sys.path.append("..")
-from utils import parser
-from utils.shell import JspShell
+from utils.shell import ShellTools
 import  wx.lib.mixins.treemixin as tm
 #---------------------------------------------------------------------------
 
@@ -41,9 +40,6 @@ class DafangFileTree(wx.Panel):
 
         self.tree = FileTree(self, tID, wx.DefaultPosition, wx.DefaultSize,
                                wx.TR_HAS_BUTTONS
-                               #| wx.TR_EDIT_LABELS
-                               #| wx.TR_MULTIPLE
-                               #| wx.TR_HIDE_ROOT
                                , self.log)
         
         isz = (16,16)
@@ -71,13 +67,13 @@ class DafangFileTree(wx.Panel):
         self.tree.SetItemImage(self.root, self.fldridx, wx.TreeItemIcon_Normal)
         
         #发送Shell初始化请求
-        self.jspShell=JspShell(self.shellEntity)
+        self.shellTools=ShellTools.getShellTools(self.shellEntity)
         
-        shellAbsolutePath=self.jspShell.getStart()
+        shellAbsolutePath=self.shellTools.getStart()
         
         shellFolder=shellAbsolutePath.split('/')
         
-        child={};
+        child={}
         
         #初始化文件树
         for x in range(1,len(shellFolder)):
@@ -96,7 +92,7 @@ class DafangFileTree(wx.Panel):
 
 
     def GetDirectoryContent(self,path):   
-        return self.jspShell.getDirectoryContent(path)
+        return self.shellTools.getDirectoryContent(path)
 
     def OnSize(self, event):
         w,h = self.GetClientSize()
@@ -131,6 +127,15 @@ class DafangFileTree(wx.Panel):
             subDirectoryList=self.UpdateFileList(item)
             self.UpdateItemChild(item,subDirectoryList)
 
+    def getSelectedItemPath(self):
+        path=self.tree.GetItemText(self.selectedItem)
+        item= self.tree.GetItemParent(self.selectedItem)
+        while item.IsOk():
+            itemText=self.tree.GetItemText(item)
+            if itemText !='/':
+                path=self.tree.GetItemText(item)+'/'+path
+            item= self.tree.GetItemParent(item)
+        return '/'+path
 
     def OnSelChanged(self, event):
         item = event.GetItem()
