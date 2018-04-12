@@ -26,7 +26,7 @@ class MainWindow(wx.Panel):
         self.nb = wx.aui.AuiNotebook(self)
 
         win = ShellListCtrl.ShellList(self, log)
-        self.nb.AddPage(win, 'Shell')
+        self.nb.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,size=(20,20)))
 
         sizer = wx.BoxSizer()
         sizer.Add(self.nb, 1, wx.EXPAND)
@@ -35,12 +35,12 @@ class MainWindow(wx.Panel):
 
     def OpenFileTree(self, shellEntity):
         win = FileManagerCtrl.FileManager(self, self.log, shellEntity)
-        index = self.nb.AddPage(win, shellEntity.shell_host)
+        index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,size=(20,20)))
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
 
     def OpenFileEditor(self, fileName, fileContent):
         win = FileEditorCtrl.FileEditor(self, self.log, fileContent)
-        index = self.nb.AddPage(win, fileName)
+        index = self.nb.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,size=(20,20)))
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
 
     def OpenVirtualConsole(self):

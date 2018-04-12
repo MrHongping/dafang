@@ -37,9 +37,9 @@ class JspShell:
 
     def parseResponse(self,response):
         if config.SPLIT_SYMBOL_LEFT in response and config.SPLIT_SYMBOL_RIGHT in response:
-            return response[response.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):response.find(config.SPLIT_SYMBOL_RIGHT)]
+            return True,response[response.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):response.find(config.SPLIT_SYMBOL_RIGHT)]
         else:
-            return 'Error://no symbol'
+            return False,response
 
     def getStart(self):
         payload = {self.shellEntity.shell_password: 'A','z0':self.shellEntity.shell_encode_type}

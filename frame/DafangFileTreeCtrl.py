@@ -44,8 +44,11 @@ class DafangFileTree(wx.Panel):
         
         isz = (16,16)
         il = wx.ImageList(isz[0], isz[1])
-        self.fldridx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,wx.ART_OTHER, isz))
+        self.folderImage     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,wx.ART_OTHER, isz))
+        self.harddiskImage=il.Add(wx.ArtProvider.GetBitmap(wx.ART_HARDDISK,wx.ART_OTHER, isz))
 
+        print self.folderImage
+        print self.harddiskImage
 
         self.tree.SetImageList(il)
         self.il = il
@@ -61,17 +64,21 @@ class DafangFileTree(wx.Panel):
         self.selectedItem=None
 
     def FileTreeInit(self):
+        # 发送Shell初始化请求
+        self.shellTools = ShellTools.getShellTools(self.shellEntity)
+
+        resultCode,resultContent = self.shellTools.getStart()
+
+        if not resultCode:
+            wx.MessageBox(resultContent)
+            return
+
         #初始化根
-        self.root = self.tree.AddRoot("/")
+        self.root = self.tree.AddRoot("/",self.harddiskImage)
         self.tree.SetItemData(self.root, None)
-        self.tree.SetItemImage(self.root, self.fldridx, wx.TreeItemIcon_Normal)
+        # self.tree.SetItemImage(self.root, self.folderImage, wx.TreeItemIcon_Normal)
         
-        #发送Shell初始化请求
-        self.shellTools=ShellTools.getShellTools(self.shellEntity)
-        
-        shellAbsolutePath=self.shellTools.getStart()
-        
-        shellFolder=shellAbsolutePath.split('/')
+        shellFolder=resultContent.split('/')
         
         child={}
         
@@ -83,7 +90,7 @@ class DafangFileTree(wx.Panel):
                 child[x]=self.tree.AppendItem(child[x-1], shellFolder[x])
                 
             self.tree.SetItemData(child[x], None)
-            self.tree.SetItemImage(child[x], self.fldridx, wx.TreeItemIcon_Normal)
+            self.tree.SetItemImage(child[x], self.folderImage, wx.TreeItemIcon_Normal)
             
         self.tree.ExpandAll()
             
@@ -99,7 +106,7 @@ class DafangFileTree(wx.Panel):
         self.tree.SetSize(0, 0, w, h)
 
     def OnLeftClick(self, event):
-        pt = event.GetPosition();
+        pt = event.GetPosition()
         item, flags = self.tree.HitTest(pt)
         if item:
             self.OnItemClick(item)
@@ -162,7 +169,7 @@ class DafangFileTree(wx.Panel):
             if directory_name not in itemChildrenTextList:
                 newItem=self.tree.AppendItem(selected_item,directory_name)
                 self.tree.SetItemData(newItem, None)
-                self.tree.SetItemImage(newItem, self.fldridx, wx.TreeItemIcon_Normal)
+                self.tree.SetItemImage(newItem, self.folderImage, wx.TreeItemIcon_Normal)
 
         self.tree.Expand(selected_item)
         
