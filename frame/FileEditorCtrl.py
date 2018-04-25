@@ -21,5 +21,4 @@ class FileEditor(wx.Panel):
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.ed, 1, wx.ALL | wx.GROW, 1)
         self.SetSizer(box)
-        print fileContent
         self.ed.WriteText(fileContent)

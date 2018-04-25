@@ -9,6 +9,8 @@
 SPLIT_SYMBOL_LEFT='->|'
 SPLIT_SYMBOL_RIGHT='|<-'
 
+ERROR_LABEL='ERROR://'
+
 SHELL_MANAGE_MENU=u'添加 编辑 删除 文件管理 数据库管理 虚拟终端 HTTP参数 内网通道'
 
 MANAGE_MENU=u'添加 关于'

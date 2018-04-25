@@ -20,7 +20,6 @@ class FileTree(wx.TreeCtrl,tm.VirtualTree):
         if t1 == t2: return 0
         return 1
 
-
 #---------------------------------------------------------------------------
 
 class DafangFileTree(wx.Panel):
@@ -29,7 +28,6 @@ class DafangFileTree(wx.Panel):
         self.parent=parent
 
         self.shellEntity=shellEntity
-        # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
@@ -44,17 +42,13 @@ class DafangFileTree(wx.Panel):
         
         isz = (16,16)
         il = wx.ImageList(isz[0], isz[1])
-        self.folderImage     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,wx.ART_OTHER, isz))
+        self.folderImage = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,wx.ART_OTHER, isz))
         self.harddiskImage=il.Add(wx.ArtProvider.GetBitmap(wx.ART_HARDDISK,wx.ART_OTHER, isz))
-
-        print self.folderImage
-        print self.harddiskImage
 
         self.tree.SetImageList(il)
         self.il = il
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged, self.tree)
-#         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivate, self.tree)
 
         self.tree.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClick)
         
@@ -70,14 +64,15 @@ class DafangFileTree(wx.Panel):
         resultCode,resultContent = self.shellTools.getStart()
 
         if not resultCode:
-            wx.MessageBox(resultContent)
+            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
             return
+        else:
+            self.parent.SetRequestStatusText('请求成功')
 
         #初始化根
         self.root = self.tree.AddRoot("/",self.harddiskImage)
         self.tree.SetItemData(self.root, None)
-        # self.tree.SetItemImage(self.root, self.folderImage, wx.TreeItemIcon_Normal)
-        
+
         shellFolder=resultContent.split('/')
         
         child={}
@@ -93,13 +88,21 @@ class DafangFileTree(wx.Panel):
             self.tree.SetItemImage(child[x], self.folderImage, wx.TreeItemIcon_Normal)
             
         self.tree.ExpandAll()
+
+        resultCode, resultContent = self.shellTools.getDirectoryContent(resultContent)
+        if not resultCode:
+            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
+            return
+        else:
+            self.parent.SetRequestStatusText('请求成功')
             
         #初始化文件列表    
-        self.parent.DafangFileListCtrl.UpdateDirectory(self.GetDirectoryContent(shellAbsolutePath))
+        self.parent.DafangFileListCtrl.UpdateDirectory(resultContent)
 
 
-    def GetDirectoryContent(self,path):   
-        return self.shellTools.getDirectoryContent(path)
+    # def GetDirectoryContent(self,path):
+    #     resultCode,resultContent=self.shellTools.getDirectoryContent(path)
+    #     return None
 
     def OnSize(self, event):
         w,h = self.GetClientSize()
@@ -172,7 +175,6 @@ class DafangFileTree(wx.Panel):
                 self.tree.SetItemImage(newItem, self.folderImage, wx.TreeItemIcon_Normal)
 
         self.tree.Expand(selected_item)
-        
 
     def UpdateFileList(self, item):
         path = self.tree.GetItemText(item)
@@ -187,10 +189,15 @@ class DafangFileTree(wx.Panel):
             path = itemText + path
             preItem = self.tree.GetItemParent(preItem)
 
-        dirContent = self.GetDirectoryContent(path)
+        resultCode, resultContent = self.shellTools.getDirectoryContent(path)
+        if not resultCode:
+            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
+            return
+        else:
+            self.parent.SetRequestStatusText('请求成功')
 
         # 更新文件列表
-        return self.parent.DafangFileListCtrl.UpdateDirectory(dirContent)
+        return self.parent.DafangFileListCtrl.UpdateDirectory(resultContent)
         
         
 

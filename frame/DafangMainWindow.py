@@ -19,7 +19,8 @@ import VirtualConsoleCtrl
 
 
 class MainWindow(wx.Panel):
-    def __init__(self, parent, log):
+    def __init__(self, parent,main_app,log):
+        self.main_app=main_app
         self.log = log
         wx.Panel.__init__(self, parent, -1)
 
@@ -28,10 +29,20 @@ class MainWindow(wx.Panel):
         win = ShellListCtrl.ShellList(self, log)
         self.nb.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,size=(20,20)))
 
-        sizer = wx.BoxSizer()
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.nb, 1, wx.EXPAND)
+
         self.SetSizer(sizer)
         wx.CallAfter(self.nb.SendSizeEvent)
+
+    def SetRequestStatusText(self,text):
+        self.main_app.SetRequestStatusText(text)
+
+    def SetHostSelectedStatusText(self,text):
+        self.main_app.SetRequestStatusText(text)
+
+    def SetTunnelStatusText(self,text):
+        self.main_app.SetRequestStatusText(text)
 
     def OpenFileTree(self, shellEntity):
         win = FileManagerCtrl.FileManager(self, self.log, shellEntity)
@@ -47,13 +58,3 @@ class MainWindow(wx.Panel):
         win = VirtualConsoleCtrl.VirtualConsole(self, self.log)
         index = self.nb.AddPage(win, 'console')
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
-
-def runTest(frame, nb, log):
-    win = MainWindow(nb, log)
-    return win
-
-
-if __name__ == '__main__':
-    import sys, os
-    import run
-    run.main(['', os.path.basename(sys.argv[0])] + sys.argv[1:])
