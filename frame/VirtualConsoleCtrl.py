@@ -30,6 +30,7 @@ class VirtualConsole(wx.Panel):
         self.ed.SetInsertionPointEnd()
 
         self.history=[]
+        self.histortCommandPointer=-1
         self.charCount=0
         self.currentPath=''
         self.OnInit()
@@ -38,35 +39,67 @@ class VirtualConsole(wx.Panel):
         code,currentPath=self.shellTools.getStart()
         if code:
             self.currentPath=currentPath
-            terminalPath=config.TERMINAL_PATH_TEMPLATE.format(str(currentPath.strip()))
+            terminalPath=config.TERMINAL_PATH_TEMPLATE.format(currentPath.strip())
             self.ed.AppendText(terminalPath)
             self.charCount+=len(terminalPath.decode('utf-8'))
 
     def OnKeyDown(self,event):
         key = event.GetKeyCode()
         if key==wx.WXK_UP:
-            print 'UP'
+
+            if self.histortCommandPointer < len(self.history)-1:
+                self.histortCommandPointer += 1
+
+                self.ed.Remove(self.charCount, len(self.ed.GetValue().decode('utf-8'))+self.ed.GetNumberOfLines())
+
+                self.ed.AppendText(self.history[self.histortCommandPointer])
+
+
         elif key==wx.WXK_DOWN:
-            pass
+
+            if self.histortCommandPointer>0:
+
+                self.histortCommandPointer -= 1
+
+                self.ed.Remove(self.charCount, len(self.ed.GetValue().decode('utf-8'))+self.ed.GetNumberOfLines())
+
+                self.ed.AppendText(self.history[self.histortCommandPointer])
+
+
         elif key==wx.WXK_BACK:
             index=self.ed.GetInsertionPoint()
             if index>self.charCount:
                 self.ed.Remove(index-1,index)
         elif key==wx.WXK_RETURN:#回车
-            self.ed.GetLineText(self.ed.GetNumberOfLines())
-            self.ed.AppendText('\n')
-            self.charCount += len('\n'.decode('utf-8'))
-            code,result=self.shellTools.excuteCommand(self.currentPath,'ifconfig')
-            if code:
-                commandResult,tmp=result.split('[S]')
-                self.ed.AppendText(commandResult)
-                self.charCount+=len(commandResult.decode('utf-8'))
-                self.currentPath,error=tmp.split('[E]')
-                if error:
-                    self.ed.AppendText(error)
-                    self.charCount += len(error.decode('utf-8'))
-                terminalPath = config.TERMINAL_PATH_TEMPLATE.format(str(self.currentPath.strip()))
-                self.ed.AppendText(terminalPath)
-                self.charCount += len(terminalPath.decode('utf-8'))
+
+            lineText=self.ed.GetLineText(self.ed.GetNumberOfLines()-1)
+
+            self.ed.AppendText('\r\n')
+            self.charCount += len('\r\n'.decode('utf-8'))
+
+            inputCommand=lineText.replace(config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip()),'')
+            if inputCommand:
+                self.charCount += len(inputCommand.decode('utf-8'))
+                code,result=self.shellTools.excuteCommand(self.currentPath,inputCommand)
+                if code:
+                    self.history.insert(0,inputCommand)
+                    self.histortCommandPointer=-1
+                    commandResult,tmp=result.split('[S]')
+                    self.ed.AppendText(commandResult)
+                    self.charCount+=len(commandResult.decode('utf-8'))
+                    currentPath,error=tmp.split('[E]')
+                    self.currentPath=currentPath.strip()
+                    if error:
+                        self.ed.AppendText(error)
+                        self.charCount += len(error.decode('utf-8'))
+
+            terminalPath = config.TERMINAL_PATH_TEMPLATE.format(str(self.currentPath))
+            self.ed.AppendText(terminalPath)
+            self.charCount += len(terminalPath.decode('utf-8'))
+        elif key==ord('X'):
+            if event.ControlDown():
+                pass
+            else:
+                event.Skip()
         else:
             event.Skip()
