@@ -57,23 +57,30 @@ class DafangFileTree(wx.Panel):
         self.SetSizer(sizer)
         self.selectedItem=None
 
+    def UpdateStatusUI(self,resultCode,resultContent,otherInfo=''):
+        print resultContent
+        if not resultCode:
+            self.parent.SetRequestStatusText(resultContent)
+            self.parent.SetComboBoxText('请求错误')
+            return
+        else:
+            self.parent.SetRequestStatusText('请求成功')
+            self.parent.SetComboBoxText(otherInfo)
+
     def FileTreeInit(self):
         # 发送Shell初始化请求
         self.shellTools = ShellTools.getShellTools(self.shellEntity)
 
-        resultCode,resultContent = self.shellTools.getStart()
+        #返回当前路径
+        resultCode,startResultContent = self.shellTools.getStart()
 
-        if not resultCode:
-            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
-            return
-        else:
-            self.parent.SetRequestStatusText('请求成功')
+        self.UpdateStatusUI(resultCode,startResultContent,startResultContent)
 
         #初始化根
         self.root = self.tree.AddRoot("/",self.harddiskImage)
         self.tree.SetItemData(self.root, None)
 
-        shellFolder=resultContent.split('/')
+        shellFolder=startResultContent.split('/')
         
         child={}
         
@@ -89,15 +96,16 @@ class DafangFileTree(wx.Panel):
             
         self.tree.ExpandAll()
 
-        resultCode, resultContent = self.shellTools.getDirectoryContent(resultContent)
-        if not resultCode:
-            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
-            return
-        else:
-            self.parent.SetRequestStatusText('请求成功')
-            
+        self.parent.SetComboBoxText('请求中...')
+
+        #返回目录列表或错误信息
+        resultCode, directoryResultContent = self.shellTools.getDirectoryContent(startResultContent)
+
+        self.UpdateStatusUI(resultCode, directoryResultContent)
+
+
         #初始化文件列表    
-        self.parent.DafangFileListCtrl.UpdateDirectory(resultContent)
+        self.parent.DafangFileListCtrl.UpdateDirectory(directoryResultContent)
 
 
     # def GetDirectoryContent(self,path):
@@ -189,12 +197,10 @@ class DafangFileTree(wx.Panel):
             path = itemText + path
             preItem = self.tree.GetItemParent(preItem)
 
+        self.parent.SetComboBoxText('请求中...')
         resultCode, resultContent = self.shellTools.getDirectoryContent(path)
-        if not resultCode:
-            self.parent.SetRequestStatusText('请求错误({0})'.format(resultContent))
-            return
-        else:
-            self.parent.SetRequestStatusText('请求成功')
+
+        self.UpdateStatusUI(resultCode,resultContent,path)
 
         # 更新文件列表
         return self.parent.DafangFileListCtrl.UpdateDirectory(resultContent)

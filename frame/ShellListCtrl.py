@@ -92,7 +92,7 @@ class ShellList(wx.Panel):
         if text == u'添加':
             self.ShowShellManageDialog()
         else:
-            wx.MessageBox('献给小落落！')
+            wx.MessageBox('For小落落，也许有一天你能用的到！\r\n\r\n——新手爸爸')
 
     def OnShellManageMenuItemSelected(self, event):
         item = self.shellManageMenu.FindItemById(event.GetId())
@@ -109,7 +109,7 @@ class ShellList(wx.Panel):
             self.UpdateShellList()
 
         if text==u'虚拟终端':
-            self.parent.OpenVirtualConsole()
+            self.parent.OpenVirtualConsole(self.shellEntityList[self.currentItem])
 
         if text==u'文件管理':
             shellEntity = self.shellEntityList[self.currentItem]

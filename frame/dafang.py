@@ -7,7 +7,12 @@
 @time: 2018/4/14 11:56
 """
 import wx
-import sys, os
+import sys
+
+reload(sys)
+
+sys.setdefaultencoding( "utf-8" )
+
 from frame.DafangMainWindow import MainWindow
 
 class Log:
@@ -28,13 +33,14 @@ class MainApp(wx.App):
 
         self.SetAssertMode(wx.APP_ASSERT_DIALOG)
 
-        frame = wx.Frame(None, -1, u"白帽磊落,神器大方", pos=(50, 50), size=(200, 100),
+        frame = wx.Frame(None, -1, u"大方——网站管理工具", pos=(50, 50), size=(200, 100),
                          style=wx.DEFAULT_FRAME_STYLE, name="")
         self.statusbar = frame.CreateStatusBar()
 
         self.statusbar.SetFieldsCount(3)
         self.statusbar.SetStatusWidths([-1, -1,-1])
         self.SetTunnelStatusText('0')
+        self.SetDafangStatusText()
 
         frame.Maximize(True)
         frame.Show(True)
@@ -57,13 +63,13 @@ class MainApp(wx.App):
         self.frame.Close(True)
 
     def SetRequestStatusText(self,text):
-        self.statusbar.SetStatusText("状态：" + text, 0)
+        self.statusbar.SetStatusText("状态：{0}".format(text), 0)
 
-    def SetHostSelectedStatusText(self,text):
-        self.statusbar.SetStatusText("当前主机：" + text, 1)
+    def SetDafangStatusText(self):
+        self.statusbar.SetStatusText("白帽磊落,神器大方",0)
 
     def SetTunnelStatusText(self,text):
-        self.statusbar.SetStatusText("内网通道数：" + text, 2)
+        self.statusbar.SetStatusText("内网通道数：{0}".format(text), 2)
 
 if __name__ == '__main__':
     app = MainApp()

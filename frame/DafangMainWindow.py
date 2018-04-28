@@ -24,13 +24,15 @@ class MainWindow(wx.Panel):
         self.log = log
         wx.Panel.__init__(self, parent, -1)
 
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         self.nb = wx.aui.AuiNotebook(self)
 
         win = ShellListCtrl.ShellList(self, log)
+
         self.nb.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,size=(20,20)))
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.nb, 1, wx.EXPAND)
+        sizer.Add(self.nb, 4, wx.EXPAND)
 
         self.SetSizer(sizer)
         wx.CallAfter(self.nb.SendSizeEvent)
@@ -54,7 +56,7 @@ class MainWindow(wx.Panel):
         index = self.nb.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,size=(20,20)))
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
 
-    def OpenVirtualConsole(self):
-        win = VirtualConsoleCtrl.VirtualConsole(self, self.log)
+    def OpenVirtualConsole(self,shellEntity):
+        win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
         index = self.nb.AddPage(win, 'console')
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)

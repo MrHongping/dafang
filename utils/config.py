@@ -31,3 +31,5 @@ USER_AGENT_LIST=['Mozilla/5.0 (Linux; U; Android 4.1.1; ja-jp; Galaxy Nexus Buil
                  'Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
                  'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko']
 
+TERMINAL_PATH_TEMPLATE='[{0}]$'
+
