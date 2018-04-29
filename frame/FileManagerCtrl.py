@@ -11,7 +11,6 @@ import wx,sys
 sys.path.append("..")
 import DafangFileTreeCtrl
 import DafangFileListCtrl
-from utils.entity import shell_entity
 from utils.shell import ShellTools
 
 class FileManager(wx.Panel):

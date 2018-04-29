@@ -16,6 +16,7 @@ import ShellListCtrl
 import FileManagerCtrl
 import FileEditorCtrl
 import VirtualConsoleCtrl
+import DatabaseManagerCtrl
 
 
 class MainWindow(wx.Panel):
@@ -58,5 +59,10 @@ class MainWindow(wx.Panel):
 
     def OpenVirtualConsole(self,shellEntity):
         win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
+        index = self.nb.AddPage(win, 'console')
+        self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
+
+    def OpenDatabaseManager(self,shellEntity):
+        win = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)
         index = self.nb.AddPage(win, 'console')
         self.nb.ChangeSelection(self.nb.GetPageCount() - 1)
