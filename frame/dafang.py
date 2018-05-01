@@ -37,10 +37,10 @@ class MainApp(wx.App):
                          style=wx.DEFAULT_FRAME_STYLE, name="")
         self.statusbar = frame.CreateStatusBar()
 
-        self.statusbar.SetFieldsCount(3)
-        self.statusbar.SetStatusWidths([-1, -1,-1])
+        self.statusbar.SetFieldsCount(2)
+        self.statusbar.SetStatusWidths([-1,-1])
         self.SetTunnelStatusText('0')
-        self.SetDafangStatusText()
+        self.statusbar.SetStatusText("白帽磊落，神器大方", 0)
 
         frame.Maximize(True)
         frame.Show(True)
@@ -65,11 +65,8 @@ class MainApp(wx.App):
     def SetRequestStatusText(self,text):
         self.statusbar.SetStatusText("状态：{0}".format(text), 0)
 
-    def SetDafangStatusText(self):
-        self.statusbar.SetStatusText("白帽磊落,神器大方",0)
-
     def SetTunnelStatusText(self,text):
-        self.statusbar.SetStatusText("内网通道数：{0}".format(text), 2)
+        self.statusbar.SetStatusText("内网通道数：{0}".format(text), 1)
 
 if __name__ == '__main__':
     app = MainApp()

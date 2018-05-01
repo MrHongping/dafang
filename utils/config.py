@@ -33,3 +33,17 @@ USER_AGENT_LIST=['Mozilla/5.0 (Linux; U; Android 4.1.1; ja-jp; Galaxy Nexus Buil
 
 TERMINAL_PATH_TEMPLATE='[{0}]$'
 
+DATABASE_SETTING_TEMPLATE=[
+    '''<T>XDB</T>
+<X>
+com.mysql.jdbc.Driver\r\njdbc:mysql://localhost/test?user=root&password=123456
+</X>''',
+    '''<T>XDB</T>
+<X>
+com.microsoft.sqlserver.jdbc.SQLServerDriver\r\njdbc:sqlserver://127.0.0.1:1433;databaseName=test;user=sa;password=123456
+</X>''',
+    '''<T>XDB</T>
+<X>
+oracle.jdbc.driver.OracleDriver\r\njdbc:oracle:thin:user/password@127.0.0.1:1521/test
+</X>''']
+

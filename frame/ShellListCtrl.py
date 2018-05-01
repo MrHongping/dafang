@@ -30,8 +30,6 @@ class ShellList(wx.Panel):
         self.shellListCtrl.InsertColumn(5,u"备注", format=wx.LIST_FORMAT_CENTER, width=200)
         self.shellListCtrl.InsertColumn(6,u"创建时间",format=wx.LIST_FORMAT_CENTER,width=200)
 
-        #####事件绑定
-
         #for MSW
         self.shellListCtrl.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.OnRightClick)
         # for wxGTK
@@ -79,12 +77,17 @@ class ShellList(wx.Panel):
     def ShowHttpSettingDialog(self,shellEntity=None):
         dlg = HttpSettingDialog(self, "Http设置",shellEntity)
         dlg.CenterOnScreen()
-        code=dlg.ShowModal()
+        dlg.ShowModal()
 
     def ShowTunnelSettingDialog(self,shellEntity=None):
         dlg = TunnelSettingDialog(self, "Tunnel设置",shellEntity)
         dlg.CenterOnScreen()
-        code=dlg.ShowModal()
+        dlg.ShowModal()
+
+    def ShowDatabaseSettingDialog(self,shellEntity):
+        dlg = DatabaseSettingDialog(self, shellEntity)
+        dlg.CenterOnScreen()
+        dlg.ShowModal()
 
     def OnManageMenuItemSelected(self, event):
         item = self.manageMenu.FindItemById(event.GetId())
@@ -92,10 +95,14 @@ class ShellList(wx.Panel):
         if text == u'添加':
             self.ShowShellManageDialog()
         else:
-            wx.MessageBox('For小落落，也许有一天你能用的到！\r\n\r\n——laochao爸爸')
+            wx.MessageBox('For小落落，也许有一天你会用到！')
 
     def OnShellManageMenuItemSelected(self, event):
+
+        self.UpdateShellList()
+
         item = self.shellManageMenu.FindItemById(event.GetId())
+
         text = item.GetText()
 
         if text == u'添加':
@@ -112,7 +119,13 @@ class ShellList(wx.Panel):
             self.parent.OpenVirtualConsole(self.shellEntityList[self.currentItem])
 
         if text==u'数据库管理':
-            self.parent.OpenDatabaseManager(self.shellEntityList[self.currentItem])
+            currentShellEntity=self.shellEntityList[self.currentItem]
+            if currentShellEntity.database_info:
+                self.parent.OpenDatabaseManager(currentShellEntity)
+            else:
+                self.ShowDatabaseSettingDialog(currentShellEntity)
+                if currentShellEntity.database_info:
+                    self.parent.OpenDatabaseManager(currentShellEntity)
 
         if text==u'文件管理':
             shellEntity = self.shellEntityList[self.currentItem]

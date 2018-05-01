@@ -8,6 +8,8 @@
 """
 import wx,sys,datetime
 
+import xml.dom.minidom as xmldom
+
 sys.path.append("..")
 
 from utils import config
@@ -391,4 +393,78 @@ class HttpSettingDialog(wx.Dialog):
     def cancelBtnClick(self, event):
         self.Destroy()
         event.Skip()
+
+class DatabaseSettingDialog(wx.Dialog):
+    def __init__(self, parent,shellEntity):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"数据库配置信息", pos=wx.DefaultPosition, size=wx.Size(1000, 500),
+                           style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+        self.shellEntity=shellEntity
+
+        bSizer4 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer5 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"示例：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1.Wrap(-1)
+        bSizer5.Add(self.m_staticText1, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.comboBoxExamples = wx.ComboBox(self, wx.ID_ANY, u"选择数据库类型", wx.DefaultPosition, wx.DefaultSize,
+                                            config.DATABASE_SETTING_TEMPLATE, 0)
+        bSizer5.Add(self.comboBoxExamples, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        bSizer4.Add(bSizer5, 0, wx.EXPAND, 5)
+
+        bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"配置：", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+        bSizer6.Add(self.m_staticText2, 0, wx.ALL, 5)
+
+        self.textCtrlDatabaseSetting = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                                   wx.TE_MULTILINE)
+        bSizer6.Add(self.textCtrlDatabaseSetting, 1, wx.ALL | wx.EXPAND, 5)
+
+        bSizer4.Add(bSizer6, 1, wx.EXPAND, 5)
+
+        bSizer7 = wx.BoxSizer(wx.VERTICAL)
+
+        self.buttonUpdate = wx.Button(self, wx.ID_ANY, u"提交", wx.DefaultPosition, wx.Size(940, -1), 0)
+        bSizer7.Add(self.buttonUpdate, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+        bSizer4.Add(bSizer7, 0, wx.EXPAND, 5)
+
+        self.SetSizer(bSizer4)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        self.Bind(wx.EVT_COMBOBOX, self.EvtComboBox, self.comboBoxExamples)
+
+        self.buttonUpdate.Bind(wx.EVT_BUTTON, self.OnButtonUpdateClick)
+
+    def EvtComboBox(self,event):
+        if event.GetString() in config.DATABASE_SETTING_TEMPLATE:
+            self.textCtrlDatabaseSetting.SetValue(event.GetString())
+        event.Skip()
+
+    # def GetDatabaseInfo(self,xmlInfo):
+        # xmlobj=xmldom.parseString(xmlInfo)
+        # print xmlInfo
+        # print xmlobj.getElementsByTagName('X').getValue()
+
+    def OnButtonUpdateClick(self,event):
+        databaseSettingInfo=self.textCtrlDatabaseSetting.GetValue()
+        # print self.GetDatabaseInfo(databaseSettingInfo)
+        self.shellEntity.database_info=self.textCtrlDatabaseSetting.GetValue()
+        DatabaseHelper.updateShellEntityByID(self.shellEntity,self.shellEntity.shell_id)
+
+        self.SetReturnCode(1)
+        self.Destroy()
+        event.Skip()
+
+    def __del__(self):
+        pass
+
 

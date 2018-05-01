@@ -10,8 +10,6 @@ import urllib
 
 import sys
 
-# sys.path.append("C:\Users\laochao\Desktop\CTF\SourceCode\YNM3000\src")
-
 class shell_entity:
 
     def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,createTime,shell_id=-1):
