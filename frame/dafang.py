@@ -13,7 +13,7 @@ reload(sys)
 
 sys.setdefaultencoding( "utf-8" )
 
-from frame.DafangMainWindow import MainWindow
+from MainWindowCtrl import MainWindow
 
 class Log:
     def WriteText(self, text):
@@ -33,8 +33,7 @@ class MainApp(wx.App):
 
         self.SetAssertMode(wx.APP_ASSERT_DIALOG)
 
-        frame = wx.Frame(None, -1, u"大方——网站管理工具", pos=(50, 50), size=(200, 100),
-                         style=wx.DEFAULT_FRAME_STYLE, name="")
+        frame = wx.Frame(None, -1, u"大方——网站管理工具",style=wx.DEFAULT_FRAME_STYLE, name="")
         self.statusbar = frame.CreateStatusBar()
 
         self.statusbar.SetFieldsCount(2)
@@ -56,6 +55,7 @@ class MainApp(wx.App):
 
         self.SetTopWindow(frame)
         self.frame = frame
+
 
         return True
 

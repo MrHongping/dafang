@@ -36,14 +36,14 @@ class ShellManageDialog(wx.Dialog):
         shellAddressBoxSizer.Add(self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.textCtrlShellAddress = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
-                                                wx.DefaultPosition, wx.Size(300, -1), 0)
+                                                wx.DefaultPosition, wx.Size(400, -1), 0)
         shellAddressBoxSizer.Add(self.textCtrlShellAddress, 0, wx.ALL, 5)
 
         self.textCtrlShellPassword = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
                                                  wx.DefaultPosition, wx.Size(90, -1), 0)
         shellAddressBoxSizer.Add(self.textCtrlShellPassword, 0, wx.ALL, 5)
 
-        shellInforSizer.Add(shellAddressBoxSizer, 1, 0, 5)
+        shellInforSizer.Add(shellAddressBoxSizer, 1, wx.TOP, 5)
 
         shellDatabaseBoxSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -53,7 +53,7 @@ class ShellManageDialog(wx.Dialog):
         shellDatabaseBoxSizer.Add(self.m_staticText2, 0, wx.ALL, 5)
 
         self.textCtrlShellDatabase = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString,
-                                                 wx.DefaultPosition, wx.Size(400, 80), 0)
+                                                 wx.DefaultPosition, wx.Size(500, 100), wx.TE_MULTILINE)
         shellDatabaseBoxSizer.Add(self.textCtrlShellDatabase, 0, wx.BOTTOM | wx.RIGHT | wx.LEFT, 5)
 
         shellInforSizer.Add(shellDatabaseBoxSizer, 0, wx.TOP, 5)
@@ -449,14 +449,7 @@ class DatabaseSettingDialog(wx.Dialog):
             self.textCtrlDatabaseSetting.SetValue(event.GetString())
         event.Skip()
 
-    # def GetDatabaseInfo(self,xmlInfo):
-        # xmlobj=xmldom.parseString(xmlInfo)
-        # print xmlInfo
-        # print xmlobj.getElementsByTagName('X').getValue()
-
     def OnButtonUpdateClick(self,event):
-        databaseSettingInfo=self.textCtrlDatabaseSetting.GetValue()
-        # print self.GetDatabaseInfo(databaseSettingInfo)
         self.shellEntity.database_info=self.textCtrlDatabaseSetting.GetValue()
         DatabaseHelper.updateShellEntityByID(self.shellEntity,self.shellEntity.shell_id)
 

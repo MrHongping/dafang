@@ -22,13 +22,13 @@ class ShellList(wx.Panel):
 
         self.shellListCtrl = wx.ListCtrl(self, -1, style =wx.LC_REPORT| wx.BORDER_SUNKEN)
 
-        self.shellListCtrl.InsertColumn(0,u'Shell地址',format=wx.LIST_FORMAT_CENTER)
-        self.shellListCtrl.InsertColumn(1,u"Shell密码",format=wx.LIST_FORMAT_CENTER,width=100)
-        self.shellListCtrl.InsertColumn(2,u"脚本类型",format=wx.LIST_FORMAT_CENTER,width=100)
-        self.shellListCtrl.InsertColumn(3,u"编码类型", format=wx.LIST_FORMAT_CENTER, width=100)
-        self.shellListCtrl.InsertColumn(4,u"数据库配置", format=wx.LIST_FORMAT_CENTER, width=100)
-        self.shellListCtrl.InsertColumn(5,u"备注", format=wx.LIST_FORMAT_CENTER, width=200)
-        self.shellListCtrl.InsertColumn(6,u"创建时间",format=wx.LIST_FORMAT_CENTER,width=200)
+        self.shellListCtrl.InsertColumn(0,u'Shell地址',format=wx.LIST_FORMAT_LEFT,width=550)
+        self.shellListCtrl.InsertColumn(1,u"Shell密码",format=wx.LIST_FORMAT_CENTER)
+        self.shellListCtrl.InsertColumn(2,u"脚本类型",format=wx.LIST_FORMAT_CENTER)
+        self.shellListCtrl.InsertColumn(3,u"编码类型", format=wx.LIST_FORMAT_CENTER)
+        self.shellListCtrl.InsertColumn(4,u"数据库配置", format=wx.LIST_FORMAT_CENTER)
+        self.shellListCtrl.InsertColumn(5,u"备注", format=wx.LIST_FORMAT_CENTER)
+        self.shellListCtrl.InsertColumn(6,u"创建时间",format=wx.LIST_FORMAT_CENTER,width=150)
 
         #for MSW
         self.shellListCtrl.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.OnRightClick)
@@ -65,7 +65,7 @@ class ShellList(wx.Panel):
             self.shellListCtrl.SetItem(index, 5, shellEntity.shell_remark)
             self.shellListCtrl.SetItem(index, 6, shellEntity.createTime)
             self.shellListCtrl.SetItemData(index,shellEntity.shell_id)
-        self.shellListCtrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        # self.shellListCtrl.Set
 
     def ShowShellManageDialog(self,shellEntity=None):
         dlg = ShellManageDialog(self, -1, "Shell设置", size=(500, -1), style=wx.DEFAULT_DIALOG_STYLE,shellEntity=shellEntity)

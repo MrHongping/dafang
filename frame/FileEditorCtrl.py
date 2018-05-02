@@ -17,8 +17,25 @@ class FileEditor(wx.Panel):
         self.log = log
         wx.Panel.__init__(self, parent, -1)
 
-        self.ed = rt.RichTextCtrl(self, style=wx.VSCROLL|wx.HSCROLL|wx.NO_BORDER)
-        box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.ed, 1, wx.ALL | wx.GROW, 1)
-        self.SetSizer(box)
-        self.ed.WriteText(fileContent)
+        bSizerMain = wx.BoxSizer(wx.VERTICAL)
+
+        bSizerTop = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.buttonLoad = wx.Button(self, wx.ID_ANY, u"载入", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizerTop.Add(self.buttonLoad, 0, wx.ALL, 5)
+
+        self.m_textCtrl2 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizerTop.Add(self.m_textCtrl2, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.buttonSave = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizerTop.Add(self.buttonSave, 0, wx.ALL, 5)
+
+        bSizerMain.Add(bSizerTop, 0, wx.EXPAND, 5)
+
+        self.textCtrlFileContent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
+                                               wx.HSCROLL | wx.TE_MULTILINE | wx.TE_WORDWRAP)
+        bSizerMain.Add(self.textCtrlFileContent, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(bSizerMain)
+
+        self.textCtrlFileContent.SetValue(fileContent)
