@@ -7,11 +7,11 @@
 @time: 2018/5/2 22:30
 """
 
-import wx, sys
+import wx, sys, os
 
 sys.path.append("..")
 from utils.shell import ShellTools
-from utils import commonsUtil
+from utils import commonsUtil,config
 
 
 class FileManager(wx.Panel):
@@ -21,6 +21,9 @@ class FileManager(wx.Panel):
         self.shellEntity = shellEntity
         self.parent = parent
         self.log = log
+        self.selectedDirectoryItemIndex=-1
+        
+        self.separator='\\'
 
         bSizerMain = wx.BoxSizer(wx.VERTICAL)
 
@@ -51,7 +54,7 @@ class FileManager(wx.Panel):
 
         bSizerFileTree.Add(bSizerStatus, 0, wx.EXPAND, 5)
 
-        self.treeCtrlFile = wx.TreeCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE)
+        self.treeCtrlFile = wx.TreeCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_HAS_BUTTONS|wx.TR_HIDE_ROOT|wx.TR_NO_LINES)
         bSizerFileTree.Add(self.treeCtrlFile, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizerBottom.Add(bSizerFileTree, 1, wx.EXPAND, 5)
@@ -80,65 +83,103 @@ class FileManager(wx.Panel):
 
         self.SetSizer(bSizerMain)
 
-        self.treeCtrlFile.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnFileTreeItemSelectChanged)
-
         self.treeCtrlFile.Bind(wx.EVT_LEFT_DOWN, self.OnFileTreeItemClick)
+
 
         self.listCtrlDirectory.Bind(wx.EVT_LEFT_DCLICK, self.OnDirectoryItemDoubleClick)
         self.listCtrlDirectory.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDirectoryItemSelected)
+        self.listCtrlDirectory.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnDirectoryItemDeSelected)
 
-        self.OnInit()
+        #windows右键
+        self.listCtrlDirectory.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.OnDirectoryItemRightClick)
+        #linux右键
+        self.listCtrlDirectory.Bind(wx.EVT_RIGHT_UP, self.OnDirectoryItemRightClick)
 
+    #外部调用
     def OnInit(self):
+        self.OnInitMenu()
+
+        self.root = self.treeCtrlFile.AddRoot(config.FILE_TREE_ROOT_TEXT)
 
         self.staticTextHost.SetLabelText(self.shellEntity.shell_host)
         # 发送Shell初始化请求
         self.shellTools = ShellTools.getShellTools(self.shellEntity)
 
         # 返回当前路径
-        resultCode, startResultContent = self.shellTools.getStart()
+        resultCode, resultContent = self.shellTools.getStart()
 
-        self.UpdateStatusUI(resultCode, startResultContent, startResultContent)
+        self.UpdateStatusUI(resultCode, resultContent, resultContent)
 
-        if resultCode:
+        if resultCode==config.REQUESTS_SUCCESS:
 
-            # 初始化根
-            self.root = self.treeCtrlFile.AddRoot("/", self.harddiskImage)
-            self.treeCtrlFile.SetItemData(self.root, None)
+            if resultContent.startswith('/'):
 
-            shellFolder = startResultContent.split('/')
+                self.separator='/'
 
-            child = {}
+                currentDirectoryPath = resultContent
 
-            # 初始化文件树
-            for x in range(1, len(shellFolder)):
-                if x == 1:
-                    child[x] = self.treeCtrlFile.AppendItem(self.root, shellFolder[x])
-                else:
-                    child[x] = self.treeCtrlFile.AppendItem(child[x - 1], shellFolder[x])
+                shellFolder = currentDirectoryPath.split(self.separator)
 
-                self.treeCtrlFile.SetItemData(child[x], None)
-                self.treeCtrlFile.SetItemImage(child[x], self.folderImage, wx.TreeItemIcon_Normal)
-                self.treeCtrlFile.SelectItem(child[x])
+                child = {}
+
+                # 初始化根
+                for x in range(0, len(shellFolder)):
+                    if x == 0:
+                        child[x] = self.treeCtrlFile.AppendItem(self.root, '/',image=self.harddiskImage)
+                    else:
+                        child[x] = self.treeCtrlFile.AppendItem(child[x - 1], shellFolder[x],image=self.folderImage)
+
+                    self.treeCtrlFile.SelectItem(child[x])
+
+            else:
+                self.separator = '\\'
+                currentDirectoryPath,disks=resultContent.split('\t')
+                diskList=disks.split(':')
+                shellFolder=currentDirectoryPath.split(self.separator)
+                child = {}
+
+                for disk in diskList:
+                    if disk:
+                        newItem=self.treeCtrlFile.AppendItem(self.root, disk+':', image=self.harddiskImage)
+                        if shellFolder[0]==disk+':':
+
+                            # 初始化根
+                            for x in range(1, len(shellFolder)):
+                                if x == 1:
+                                    child[x] = self.treeCtrlFile.AppendItem(newItem, shellFolder[x], image=self.folderImage)
+                                else:
+                                    child[x] = self.treeCtrlFile.AppendItem(child[x - 1], shellFolder[x], image=self.folderImage)
+
+                                self.treeCtrlFile.SelectItem(child[x])
 
             self.treeCtrlFile.ExpandAll()
 
             self.comboBoxPath.SetValue('请求中...')
 
             # 返回目录列表或错误信息
-            resultCode, resultDirectoryContent = self.shellTools.getDirectoryContent(startResultContent)
+            resultCode, resultContent = self.shellTools.getDirectoryContent(currentDirectoryPath)
 
-            self.UpdateStatusUI(resultCode, resultDirectoryContent,startResultContent)
+            self.UpdateStatusUI(resultCode, resultContent,currentDirectoryPath)
 
             # 初始化文件列表
             if resultCode:
-                self.UpdateDirectoryContent(resultDirectoryContent)
+                self.UpdateDirectoryContent(resultContent)
 
-    def OnFileTreeItemSelectChanged(self, event):
-        item = event.GetItem()
-        if item:
-            self.treeCtrlFile.Expand(item)
-        event.Skip()
+    def OnInitMenu(self):
+        self.fileManageMenu = wx.Menu()
+        for text in config.FILE_MANAGE_MENU.split():
+            item = self.fileManageMenu.Append(-1, text)
+            self.listCtrlDirectory.Bind(wx.EVT_MENU, self.OnFileManageMenuItemSelected, item)
+
+        self.directoryManageMenu = wx.Menu()
+        for text in config.DIRECTORY_MANAGE_MENU.split():
+            item = self.directoryManageMenu.Append(-1, text)
+            self.listCtrlDirectory.Bind(wx.EVT_MENU, self.OnDirectoryManageMenuItemSelected, item)
+
+        self.emptyDirectoryManageMenu = wx.Menu()
+        for text in config.EMPTY_DIRECTORY_MANAGE_MENU.split():
+            item = self.emptyDirectoryManageMenu.Append(-1, text)
+            self.listCtrlDirectory.Bind(wx.EVT_MENU, self.OnEmptyDirectoryManageMenuItemSelected, item)
 
     def OnFileTreeItemClick(self, event):
         pt = event.GetPosition()
@@ -150,24 +191,151 @@ class FileManager(wx.Panel):
     def OnDirectoryItemDoubleClick(self, event):
         itemName=self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
         if commonsUtil.isDirectory(itemName):
-            self.ClickItemByName(itemName)
+            self.ClickFileTreeItemByName(itemName)
         else:
             self.OpenNewFileEditor(itemName)
         event.Skip()
 
     def OnDirectoryItemSelected(self, event):
         self.selectedDirectoryItemIndex = event.Index
+        event.Skip()
 
-    def ClickItemByName(self,itemName):
+    def OnDirectoryItemDeSelected(self, event):
+        self.selectedDirectoryItemIndex = -1
+        event.Skip()
+
+    def OnDirectoryItemRightClick(self, event):
+        if self.selectedDirectoryItemIndex==-1:
+            self.listCtrlDirectory.PopupMenu(self.emptyDirectoryManageMenu)
+        else:
+            if commonsUtil.isDirectory(self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]):
+                self.listCtrlDirectory.PopupMenu(self.directoryManageMenu)
+            else:
+                self.listCtrlDirectory.PopupMenu(self.fileManageMenu)
+        event.Skip()
+
+    def OnDirectoryManageMenuItemSelected(self,event):
+        item = self.directoryManageMenu.FindItemById(event.GetId())
+
+        text = item.GetText()
+
+        path = self.getItemPath(self.selectedFileTreeItem)
+
+        itemName=self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
+
+        if text == u'下载文件到服务器':
+            pass
+
+        if text == u'上传':
+            self.UploadFile(path)
+
+        if text == u'删除':
+            self.shellTools.deleteFileOrDirectory(path + self.separator + itemName)
+        self.UpdateFileTree(self.selectedFileTreeItem)
+        event.Skip()
+
+    def OnEmptyDirectoryManageMenuItemSelected(self,event):
+        item = self.emptyDirectoryManageMenu.FindItemById(event.GetId())
+
+        text = item.GetText()
+
+        path = self.getItemPath(self.selectedFileTreeItem)
+
+        if text == u'下载文件到服务器':
+            pass
+
+        if text == u'上传':
+            self.UploadFile(path)
+
+        self.UpdateFileTree(self.selectedFileTreeItem)
+
+    def OnFileManageMenuItemSelected(self, event):
+
+        item = self.fileManageMenu.FindItemById(event.GetId())
+
+        text = item.GetText()
+
+        remotePath=self.getItemPath(self.selectedFileTreeItem)
+
+        itemName = self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
+
+        fileLength=int(self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex,2))
+
+        if text==u'下载文件到服务器':
+            pass
+
+        if text==u'上传':
+            self.UploadFile(remotePath)
+            self.UpdateFileTree(self.selectedFileTreeItem)
+
+        if text==u'下载':
+            dlg = wx.FileDialog(
+                self, message="下载为", defaultDir=os.getcwd(),
+                defaultFile=itemName, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+            )
+
+            dlg.SetFilterIndex(2)
+
+            if dlg.ShowModal() == wx.ID_OK:
+                localPath = dlg.GetPath()
+                self.log.WriteText('You selected "%s"' % localPath)
+                count=0
+                with open(localPath,'ab') as file:
+                    for data in self.shellTools.downloadFile(remotePath+self.separator+itemName):
+
+                        #删掉菜刀响应标识符，文件前三个字节和后三个字节
+                        if count==0:
+                            data=data[len(config.SPLIT_SYMBOL_LEFT):]
+                        elif count+len(data)>fileLength:
+                            data = data[:fileLength-count]
+
+                        file.write(data)
+
+                        count+=len(data)
+
+        if text ==u'删除':
+            self.shellTools.deleteFileOrDirectory(remotePath+self.separator+itemName)
+            self.UpdateFileTree(self.selectedFileTreeItem)
+
+        if text==u'编辑':
+            self.OpenNewFileEditor(text)
+
+    def UploadFile(self,remotePath):
+        dlg = wx.FileDialog(
+            self, message="选择文件", defaultDir=os.getcwd(),
+            defaultFile='', wildcard="All files (*.*)|*.*", style=wx.FD_OPEN
+        )
+
+        dlg.SetFilterIndex(2)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            localFilename=dlg.GetFilename()
+            localPath=dlg.GetPath()
+            with open(localPath,'rb') as file:
+                content=file.read()
+            if content:
+                self.shellTools.uploadFile(remotePath+self.separator+localFilename,content.encode('hex'))
+
+    def ClickFileTreeItemByName(self,itemName):
+
         item,cookie=self.treeCtrlFile.GetFirstChild(self.selectedFileTreeItem)
+
         if self.treeCtrlFile.GetItemText(item)+'/' ==itemName:
+
             self.DoFileTreeItemClick(item)
+
             return
+
         while item.IsOk():
+
             item,cookie=self.treeCtrlFile.GetNextChild(self.selectedFileTreeItem,cookie)
+
             if item:
+
                 if self.treeCtrlFile.GetItemText(item) + '/' == itemName:
+
                     self.DoFileTreeItemClick(item)
+
                     return
 
     def DoFileTreeItemClick(self,item):
@@ -214,6 +382,7 @@ class FileManager(wx.Panel):
             self.SetRequestStatusText('请求成功')
         self.SetComboBoxText(path)
 
+    #更新目录的文件列表
     def UpdateDirectoryContent(self, directoryContent):
         self.listCtrlDirectory.DeleteAllItems()
 
@@ -248,7 +417,7 @@ class FileManager(wx.Panel):
             if directoryFlag:
                 directoryCount+=1
                 directoryName = itemName[:len(itemName) - 1]
-                subDirectoryList.append(directoryName)
+                subDirectoryList.append(directoryName.replace('/',self.separator))
                 index = self.listCtrlDirectory.InsertItem(self.listCtrlDirectory.GetItemCount(), directoryName, self.folderImage)
             else:
                 fileCount+=1
@@ -269,24 +438,37 @@ class FileManager(wx.Panel):
         return subDirectoryList
 
     def getItemPath(self,item):
+
         path=self.treeCtrlFile.GetItemText(item)
 
-        if path=='/':
+        if path == '/':
             return path
+
+        if ':' in path:
+            return path+self.separator
 
         parentItem= self.treeCtrlFile.GetItemParent(item)
         while parentItem.IsOk():
+
             itemText=self.treeCtrlFile.GetItemText(parentItem)
-            if itemText !='/':
-                path=self.treeCtrlFile.GetItemText(parentItem)+'/'+path
+
+            if itemText == '/':
+                path = self.treeCtrlFile.GetItemText(parentItem) + path
+                break
+
+            path=self.treeCtrlFile.GetItemText(parentItem)+self.separator+path
+
+            if ':' in itemText:
+                break
+
             parentItem= self.treeCtrlFile.GetItemParent(parentItem)
-        return '/'+path
+        return path
 
     def OpenNewFileEditor(self, fileName):
         path = self.getItemPath(self.selectedFileTreeItem)
-        resultCode, fileContent = ShellTools.getShellTools(self.shellEntity).getFileContent(path + '/' + fileName)
-        if resultCode:
-            self.parent.OpenFileEditor(fileName, fileContent)
+        filePath=path + self.separator + fileName
+        #resultCode, fileContent = ShellTools.getShellTools(self.shellEntity).getFileContent(path + self.separator + fileName)
+        self.parent.OpenFileEditor(fileName, filePath, self.shellEntity)
 
     def SetRequestStatusText(self, text):
         self.parent.SetRequestStatusText(text)

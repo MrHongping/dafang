@@ -7,14 +7,21 @@
 @time: 2018/4/1 20:16
 """
 import  wx,sys
-import wx.richtext as rt
 
 sys.path.append("..")
 
+from utils.shell import ShellTools
+from utils import config
+
 class FileEditor(wx.Panel):
 
-    def __init__(self, parent, log,fileContent):
+    def __init__(self, parent, shellEntity,log,filePath):
+
+        self.parent=parent
+        self.shellEntity=shellEntity
         self.log = log
+        self.filePath=filePath
+
         wx.Panel.__init__(self, parent, -1)
 
         bSizerMain = wx.BoxSizer(wx.VERTICAL)
@@ -24,8 +31,8 @@ class FileEditor(wx.Panel):
         self.buttonLoad = wx.Button(self, wx.ID_ANY, u"载入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizerTop.Add(self.buttonLoad, 0, wx.ALL, 5)
 
-        self.m_textCtrl2 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizerTop.Add(self.m_textCtrl2, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.textCtrlFilePath = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizerTop.Add(self.textCtrlFilePath, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.buttonSave = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizerTop.Add(self.buttonSave, 0, wx.ALL, 5)
@@ -38,4 +45,55 @@ class FileEditor(wx.Panel):
 
         self.SetSizer(bSizerMain)
 
-        self.textCtrlFileContent.SetValue(fileContent)
+        self.buttonSave.Bind(wx.EVT_BUTTON,self.OnSaveBtnClick)
+        self.buttonLoad.Bind(wx.EVT_BUTTON,self.OnLoadBtnClick)
+
+    def OnInit(self):
+
+        self.textCtrlFilePath.SetValue(self.filePath)
+
+        self.ShowFileContent(self.filePath)
+
+    def ShowFileContent(self,filePath):
+
+        resultCode, resultContent = ShellTools.getShellTools(self.shellEntity).getFileContent(filePath)
+
+        if resultCode == config.REQUESTS_SUCCESS:
+
+            self.textCtrlFileContent.SetValue(resultContent)
+
+            self.parent.SetRequestStatusText('文件载入成功')
+
+        elif resultCode==config.ERROR_RESPONSE_WITH_SYMBOL:
+
+            self.parent.SetRequestStatusText('执行成功，但有错误发生\n' + resultContent)
+
+    def OnSaveBtnClick(self,event):
+
+        filePath = self.textCtrlFilePath.GetValue()
+
+        fileContent=self.textCtrlFileContent.GetValue()
+
+        if filePath:
+            resultCode, saveCode = ShellTools.getShellTools(self.shellEntity).createFile(filePath,fileContent)
+
+            if resultCode == config.REQUESTS_SUCCESS:
+
+                if saveCode=='1':
+                    self.parent.SetRequestStatusText('保存成功')
+                else:
+                    self.parent.SetRequestStatusText('执行成功，但有错误发生\n'+saveCode)
+
+            elif resultCode==config.ERROR_RESPONSE_WITH_SYMBOL:
+
+                self.parent.SetRequestStatusText('执行成功，但有错误发生\n' + saveCode)
+
+    def OnLoadBtnClick(self,event):
+
+        filePath=self.textCtrlFilePath.GetValue()
+
+        if filePath:
+            self.ShowFileContent(filePath)
+        else:
+            wx.MessageBox('文件路径不能为空')
+

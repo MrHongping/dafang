@@ -41,7 +41,7 @@ class MainWindow(wx.Panel):
         sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"内网通道列表"), wx.VERTICAL)
 
         self.listCtrlTunnel = wx.ListCtrl(sbSizer1.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.LC_ICON)
+                                          wx.LC_REPORT)
         sbSizer1.Add(self.listCtrlTunnel, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizer2.Add(sbSizer1, 1, wx.EXPAND|wx.ALL, 5)
@@ -59,6 +59,12 @@ class MainWindow(wx.Panel):
         self.SetSizer(sizer)
 
         wx.CallAfter(self.nb.SendSizeEvent)
+        self.Ontest()
+
+    def Ontest(self):
+        # self.listCtrlTunnel
+        self.listCtrlTunnel.InsertColumn(0, u'侦听地址')
+        self.listCtrlTunnel.InsertColumn(1, u"流量")
 
     def SetRequestStatusText(self,text):
         self.textCtrlResponseStatus.SetValue(text)
@@ -66,10 +72,12 @@ class MainWindow(wx.Panel):
     def OpenFileTree(self, shellEntity):
         win = FileManagerCtrl.FileManager(self, self.log, shellEntity)
         index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,client=wx.ART_FRAME_ICON,size=(20,20)))
+        win.OnInit()
 
-    def OpenFileEditor(self, fileName, fileContent):
-        win = FileEditorCtrl.FileEditor(self, self.log, fileContent)
+    def OpenFileEditor(self, fileName, filePath,shellEntity):
+        win = FileEditorCtrl.FileEditor(self, shellEntity,self.log, filePath)
         index = self.nb.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,client=wx.ART_FRAME_ICON,size=(20,20)))
+        win.OnInit()
 
     def OpenVirtualConsole(self,shellEntity):
         win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
@@ -78,3 +86,4 @@ class MainWindow(wx.Panel):
     def OpenDatabaseManager(self,shellEntity):
         win = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)
         index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_HELP_BOOK,client=wx.ART_FRAME_ICON))
+        win.OnInit()

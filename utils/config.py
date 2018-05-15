@@ -11,7 +11,15 @@ SPLIT_SYMBOL_RIGHT='|<-'
 
 ERROR_LABEL='ERROR://'
 
+FILE_TREE_ROOT_TEXT='$#root#$'
+
 SHELL_MANAGE_MENU=u'添加 编辑 删除 文件管理 数据库管理 虚拟终端 HTTP参数 内网通道'
+
+FILE_MANAGE_MENU=u'下载文件到服务器 上传 下载 编辑 删除 新建'
+
+DIRECTORY_MANAGE_MENU=u'下载文件到服务器 上传 删除 新建'
+
+EMPTY_DIRECTORY_MANAGE_MENU=u'下载文件到服务器 上传'
 
 MANAGE_MENU=u'添加 关于'
 
@@ -22,6 +30,7 @@ SHELL_ENCODE_LIST=['UTF-8','GB2312']
 TUNNEL_LISTEN_IP_LIST=['0.0.0.0','127.0.0.1']
 
 HTTP_DEFAULT_COOKIE='hello=201802200559'
+
 HTTP_DEFAULT_UA='Mozilla/5.0 (Dafang1.0)'
 
 USER_AGENT_LIST=['Mozilla/5.0 (Linux; U; Android 4.1.1; ja-jp; Galaxy Nexus Build/JRO03H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30 ',
@@ -46,4 +55,10 @@ com.microsoft.sqlserver.jdbc.SQLServerDriver\r\njdbc:sqlserver://127.0.0.1:1433;
 <X>
 oracle.jdbc.driver.OracleDriver\r\njdbc:oracle:thin:user/password@127.0.0.1:1521/test
 </X>''']
+
+#请求返回值
+REQUESTS_SUCCESS=1
+ERROR_RESPONSE_NO_SYMBOL=2
+ERROR_RESPONSE_WITH_SYMBOL=3
+ERROR_DAFANG=4
 

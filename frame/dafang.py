@@ -56,7 +56,6 @@ class MainApp(wx.App):
         self.SetTopWindow(frame)
         self.frame = frame
 
-
         return True
 
     def OnExitApp(self, evt):

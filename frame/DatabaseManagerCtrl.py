@@ -71,8 +71,6 @@ class DatabaseManager(wx.Panel):
         self.treeCtrlDatabaseShow.Bind(wx.EVT_LEFT_DOWN,self.OnTreeItemClick)
         self.buttonQuery.Bind(wx.EVT_BUTTON,self.OnButtonQueryClick)
 
-        self.OnInit()
-
     def OnInit(self):
         if self.shellEntity.database_info:
             connectInfo=self.shellEntity.database_info.split('<X>')[1].replace('</X>','').strip()

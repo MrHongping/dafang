@@ -156,6 +156,7 @@ class ShellList(wx.Panel):
             self.shellListCtrl.PopupMenu(self.shellManageMenu)
         else:
             self.shellListCtrl.PopupMenu(self.manageMenu)
+        # self.currentItem=-1
 
     def OnSize(self, evt):
         self.shellListCtrl.SetSize(self.GetSize())
