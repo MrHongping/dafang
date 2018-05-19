@@ -19,6 +19,8 @@ import FileEditorCtrl
 import VirtualConsoleCtrl
 import DatabaseManagerCtrl
 
+from utils import config
+
 
 class MainWindow(wx.Panel):
     def __init__(self, parent,main_app,log):
@@ -30,15 +32,15 @@ class MainWindow(wx.Panel):
 
         bSizerLeft = wx.BoxSizer(wx.VERTICAL)
 
-        self.nb = wx.aui.AuiNotebook(self)
+        self.notebookCtrl = wx.aui.AuiNotebook(self)
 
         win = ShellListCtrl.ShellList(self, log)
 
-        self.nb.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
+        self.notebookCtrl.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
 
-        bSizerLeft.Add(self.nb, 1, wx.EXPAND)
+        bSizerLeft.Add(self.notebookCtrl, 1, wx.EXPAND)
 
-        mainSizer.Add(bSizerLeft, 4, wx.EXPAND, 5)
+        mainSizer.Add(bSizerLeft, 5, wx.EXPAND)
 
         bSizerRight = wx.BoxSizer(wx.VERTICAL)
 
@@ -61,9 +63,55 @@ class MainWindow(wx.Panel):
         mainSizer.Add(bSizerRight, 1, wx.EXPAND, 5)
 
         self.SetSizer(mainSizer)
+        self.Layout()
 
-        wx.CallAfter(self.nb.SendSizeEvent)
+        self.Centre(wx.BOTH)
+
+        self.tabManageMenu = wx.Menu()
+        for text in config.TAB_MANAGE_MENU.split():
+            item = self.tabManageMenu.Append(-1, text)
+            self.notebookCtrl.Bind(wx.EVT_MENU, self.OnTabManageMenuItemSelected, item)
+
+        self.notebookCtrl.Bind(wx.aui.EVT_AUINOTEBOOK_TAB_RIGHT_UP,self.OnTabRightClick)
+
         self.Ontest()
+
+    def OnTabRightClick(self,event):
+        self.selectTab=event.GetSelection()
+        self.notebookCtrl.PopupMenu(self.tabManageMenu)
+
+    def OnTabManageMenuItemSelected(self, event):
+
+        item = self.tabManageMenu.FindItemById(event.GetId())
+
+        text = item.GetText()
+
+        if text == u'关闭当前选项卡':
+            self.notebookCtrl.DeletePage(self.selectTab)
+
+        if text == u'关闭其他选项卡':
+            print self.selectTab
+            pageCount = self.notebookCtrl.GetPageCount()
+            for page in range(self.selectTab + 1, pageCount):
+                self.notebookCtrl.DeletePage(self.selectTab + 1)
+
+            for page in range(0,self.selectTab):
+                self.notebookCtrl.DeletePage(0)
+
+        if text == u'关闭右侧所有选项卡':
+            pageCount = self.notebookCtrl.GetPageCount()
+            for page in range(self.selectTab+1, pageCount):
+                print page
+                self.notebookCtrl.DeletePage(self.selectTab+1)
+
+        if text == u'关闭左侧所有选项卡':
+            for page in range(0,self.selectTab):
+                self.notebookCtrl.DeletePage(0)
+
+        if text == u'关闭所有选项卡':
+            pageCount = self.notebookCtrl.GetPageCount()
+            for page in range(0, pageCount):
+                self.notebookCtrl.DeletePage(0)
 
     def Ontest(self):
         # self.listCtrlTunnel
@@ -76,19 +124,19 @@ class MainWindow(wx.Panel):
 
     def OpenFileTree(self, shellEntity):
         win = FileManagerCtrl.FileManager(self, self.log, shellEntity)
-        index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,client=wx.ART_FRAME_ICON,size=(20,20)))
+        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,client=wx.ART_FRAME_ICON,size=(20,20)))
         win.OnInit()
 
     def OpenFileEditor(self, fileName, filePath,shellEntity):
         win = FileEditorCtrl.FileEditor(self, shellEntity,self.log, filePath)
-        index = self.nb.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,client=wx.ART_FRAME_ICON,size=(20,20)))
+        index = self.notebookCtrl.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,client=wx.ART_FRAME_ICON,size=(20,20)))
         win.OnInit()
 
     def OpenVirtualConsole(self,shellEntity):
         win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
-        index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE,client=wx.ART_FRAME_ICON))
+        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE,client=wx.ART_FRAME_ICON))
 
     def OpenDatabaseManager(self,shellEntity):
         win = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)
-        index = self.nb.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_HELP_BOOK,client=wx.ART_FRAME_ICON))
+        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_HELP_BOOK,client=wx.ART_FRAME_ICON))
         win.OnInit()

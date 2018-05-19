@@ -14,8 +14,9 @@ import requests
 # for i in downloadFile('/root/Downloads/apache-tomcat-7.0.85/webapps/examples/WEB-INF/lib/taglibs-standard-impl-1.2.5.ar'):
 #     print len(i)
 
-data='/1234/5678/9/'
-print data.split('/')
+data='/1234/5678/9/123'
+dl=data.split('/')
+print dl[len(dl)-1]
 
 for x in range(1,5):
     print x

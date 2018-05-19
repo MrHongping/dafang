@@ -126,8 +126,11 @@ class ShellManageDialog(wx.Dialog):
 
         # Connect Events
         self.saveDataBaseBtnCancel.Bind(wx.EVT_BUTTON, self.OnCancelBtnClick)
+        self.textCtrlShellAddress.Bind(wx.EVT_TEXT,self.OnShellAddressChange)
 
-    def getSettingResult(self):
+        self.saveDataBaseBtnOK.SetFocus()
+
+    def GetSettingResult(self):
         shell_address = self.textCtrlShellAddress.GetValue()
 
         if not shell_address:
@@ -142,13 +145,11 @@ class ShellManageDialog(wx.Dialog):
 
         shell_script_type = self.comboBoxShellScriptType.GetValue()
         if shell_script_type not in config.SHELL_SCRIPT_LIST:
-            wx.MessageBox('请选择Shell脚本类型')
-            return
+            shell_script_type='JSP'
 
         shell_encode_type = self.comboBoxShellEncodeType.GetValue()
         if shell_encode_type not in config.SHELL_ENCODE_LIST:
-            wx.MessageBox('请选择Shell编码类型')
-            return
+            shell_encode_type='UTF-8'
 
         database_info = self.textCtrlShellDatabase.GetValue()
         shell_remark = self.textCtrlRemark.GetValue()
@@ -160,7 +161,7 @@ class ShellManageDialog(wx.Dialog):
 
     def OnSaveBtnClick(self, event):
 
-        shellEntity=self.getSettingResult()
+        shellEntity=self.GetSettingResult()
         if not shellEntity:
             return
 
@@ -172,7 +173,7 @@ class ShellManageDialog(wx.Dialog):
 
     def OnUpdateBtnClick(self, event):
 
-        shellEntity = self.getSettingResult()
+        shellEntity = self.GetSettingResult()
         if not shellEntity:
             return
         DatabaseHelper.updateShellEntityByID(shellEntity,self.shellID)
@@ -184,6 +185,15 @@ class ShellManageDialog(wx.Dialog):
         self.Destroy()
         event.Skip()
 
+    def OnShellAddressChange(self,event):
+        shellAddress=event.GetString()
+        if '.' in shellAddress:
+            ss=shellAddress.split('.')
+            suffix=ss[len(ss)-1]
+            if 'jsp' in suffix.lower():
+                self.comboBoxShellScriptType.SetValue('JSP')
+            if 'php' in suffix.lower():
+                self.comboBoxShellScriptType.SetValue('PHP')
 
 class TunnelSettingDialog(wx.Dialog):
     def __init__(self, parent,title,shellEntity):
