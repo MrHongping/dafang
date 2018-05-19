@@ -135,6 +135,7 @@ class MainWindow(wx.Panel):
     def OpenVirtualConsole(self,shellEntity):
         win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
         index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE,client=wx.ART_FRAME_ICON))
+        win.OnInit()
 
     def OpenDatabaseManager(self,shellEntity):
         win = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)

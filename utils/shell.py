@@ -138,14 +138,13 @@ class JspShell:
             log.e(str(e))
             return config.ERROR_DAFANG,str(e)
 
-    def __excuteCommand(self,path,command):
-        z2='{0};{1};echo [S];pwd;echo [E]'.format(path,command)
-        payload = {self.shellEntity.shell_password: 'M', 'z1': '-c/bin/sh','z2':z2, 'z0': self.shellEntity.shell_encode_type}
+    def __excuteCommand(self,commandZ1,commandZ2):
+        payload = {self.shellEntity.shell_password: 'M', 'z1': commandZ1,'z2':commandZ2, 'z0': self.shellEntity.shell_encode_type}
         return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
 
-    def excuteCommand(self,path,command):
+    def excuteCommand(self,commandZ1,commandZ2):
         try:
-            thread = ThreadWithReturnValue(self.__excuteCommand, (path,command,))
+            thread = ThreadWithReturnValue(self.__excuteCommand, (commandZ1,commandZ2,))
             thread.start()
             return self.parseResponse(thread.join())
         except Exception as e:

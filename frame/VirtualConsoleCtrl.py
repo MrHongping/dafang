@@ -15,9 +15,12 @@ from utils.shell import ShellTools
 class VirtualConsole(wx.Panel):
 
     def __init__(self, parent,shellEntity, log):
+
+        self.parent=parent
         self.log = log
         self.shellEntity = shellEntity
         self.shellTools = ShellTools.getShellTools(self.shellEntity)
+
         wx.Panel.__init__(self, parent, -1)
 
         self.ed = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE)
@@ -33,13 +36,27 @@ class VirtualConsole(wx.Panel):
         self.histortCommandPointer=-1
         self.charCount=0
         self.currentPath=''
-        self.OnInit()
+        self.commandZ1=''
+        self.commandZ2=''
 
     def OnInit(self):
-        code,currentPath=self.shellTools.getStart()
-        if code:
-            self.currentPath=currentPath
-            terminalPath=config.TERMINAL_PATH_TEMPLATE.format(currentPath.strip())
+        resultCode,resultContent=self.shellTools.getStart()
+
+        if resultCode==config.REQUESTS_SUCCESS:
+
+            if resultContent.startswith('/'):
+
+                self.currentPath = resultContent
+                self.commandZ1='-c/bash/sh'
+                self.commandZ2='{0};{1};echo [S];pwd;echo [E]'
+
+            else:
+
+                self.currentPath,disks=resultContent.split('\t')
+                self.commandZ1 = '/ccmd'
+                self.commandZ2 = 'cd /d {0}&{1}&echo [S]&cd&echo [E]'
+
+            terminalPath=config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip())
             self.ed.AppendText(terminalPath)
             self.charCount+=len(terminalPath.decode('utf-8'))
 
@@ -78,20 +95,34 @@ class VirtualConsole(wx.Panel):
             self.charCount += len('\r\n'.decode('utf-8'))
 
             inputCommand=lineText.replace(config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip()),'')
+
             if inputCommand:
+
                 self.charCount += len(inputCommand.decode('utf-8'))
-                code,result=self.shellTools.excuteCommand(self.currentPath,inputCommand)
-                if code:
+
+                resultCode, resultContent=self.shellTools.excuteCommand(self.commandZ1,self.commandZ2.format(self.currentPath,inputCommand))
+
+                if resultCode==config.REQUESTS_SUCCESS:
+
                     self.history.insert(0,inputCommand)
+
                     self.histortCommandPointer=-1
-                    commandResult,tmp=result.split('[S]')
+
+                    commandResult,tmp=resultContent.split('[S]')
+
                     self.ed.AppendText(commandResult)
+
                     self.charCount+=len(commandResult.decode('utf-8'))
+
                     currentPath,error=tmp.split('[E]')
+
                     self.currentPath=currentPath.strip()
+
                     if error:
                         self.ed.AppendText(error)
                         self.charCount += len(error.decode('utf-8'))
+                else:
+                    self.parent.SetRequestStatusText(resultContent)
 
             terminalPath = config.TERMINAL_PATH_TEMPLATE.format(str(self.currentPath))
             self.ed.AppendText(terminalPath)
