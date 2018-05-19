@@ -26,7 +26,9 @@ class MainWindow(wx.Panel):
         self.log = log
         wx.Panel.__init__(self, parent, -1)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizerLeft = wx.BoxSizer(wx.VERTICAL)
 
         self.nb = wx.aui.AuiNotebook(self)
 
@@ -34,35 +36,38 @@ class MainWindow(wx.Panel):
 
         self.nb.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
 
-        sizer.Add(self.nb, 5, wx.EXPAND)
+        bSizerLeft.Add(self.nb, 1, wx.EXPAND)
 
-        bSizer2 = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(bSizerLeft, 4, wx.EXPAND, 5)
 
-        sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"内网通道列表"), wx.VERTICAL)
+        bSizerRight = wx.BoxSizer(wx.VERTICAL)
 
-        self.listCtrlTunnel = wx.ListCtrl(sbSizer1.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+        sbSizerTunnel = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"内网通道列表"), wx.VERTICAL)
+
+        self.listCtrlTunnel = wx.ListCtrl(sbSizerTunnel.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                                           wx.LC_REPORT)
-        sbSizer1.Add(self.listCtrlTunnel, 1, wx.ALL | wx.EXPAND, 5)
+        sbSizerTunnel.Add(self.listCtrlTunnel, 1, wx.ALL | wx.EXPAND, 5)
 
-        bSizer2.Add(sbSizer1, 1, wx.EXPAND|wx.ALL, 5)
+        bSizerRight.Add(sbSizerTunnel, 1, wx.EXPAND|wx.ALL, 5)
 
-        sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"请求响应状态："), wx.VERTICAL)
+        sbSizerStatus = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"请求响应状态："), wx.VERTICAL)
 
-        self.textCtrlResponseStatus = wx.TextCtrl(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
+        self.textCtrlResponseStatus = wx.TextCtrl(sbSizerStatus.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
                                                   wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE|wx.TE_READONLY)
-        sbSizer2.Add(self.textCtrlResponseStatus, 1, wx.ALL | wx.EXPAND, 5)
+        sbSizerStatus.Add(self.textCtrlResponseStatus, 1, wx.ALL | wx.EXPAND, 5)
 
-        bSizer2.Add(sbSizer2, 1, wx.EXPAND|wx.ALL, 5)
+        bSizerRight.Add(sbSizerStatus, 1, wx.EXPAND|wx.ALL, 5)
 
-        sizer.Add(bSizer2, 1, wx.EXPAND, 5)
+        mainSizer.Add(bSizerRight, 1, wx.EXPAND, 5)
 
-        self.SetSizer(sizer)
+        self.SetSizer(mainSizer)
 
         wx.CallAfter(self.nb.SendSizeEvent)
         self.Ontest()
 
     def Ontest(self):
         # self.listCtrlTunnel
+
         self.listCtrlTunnel.InsertColumn(0, u'侦听地址')
         self.listCtrlTunnel.InsertColumn(1, u"流量")
 
