@@ -27,45 +27,26 @@ class MainApp(wx.App):
         wx.App.__init__(self, redirect=False)
 
     def OnInit(self):
-        wx.Log.SetActiveTarget(wx.LogStderr())
 
         self.log=Log()
 
         self.SetAssertMode(wx.APP_ASSERT_DIALOG)
 
-        frame = wx.Frame(None, -1, u"大方——网站管理工具",style=wx.DEFAULT_FRAME_STYLE, name="")
-        self.statusbar = frame.CreateStatusBar()
+        self.frame = MainWindow(self,self.log,'大方——网站管理工具')
+
+        self.statusbar = self.frame.CreateStatusBar()
 
         self.statusbar.SetFieldsCount(2)
+
         self.statusbar.SetStatusWidths([-1,-1])
-        self.SetTunnelStatusText('0')
+
         self.statusbar.SetStatusText("白帽磊落，神器大方", 0)
 
-        frame.Maximize(True)
-        frame.Show(True)
+        self.statusbar.SetStatusText("仅供学习研究，请勿用于他途，否则。。。", 1)
 
-        win = MainWindow(frame,self,self.log)
-
-        if win:
-            win.SetFocus()
-            self.window = win
-        else:
-            frame.Destroy()
-            return True
-
-        self.SetTopWindow(frame)
-        self.frame = frame
+        self.frame.Show(True)
 
         return True
-
-    def OnExitApp(self, evt):
-        self.frame.Close(True)
-
-    def SetRequestStatusText(self,text):
-        self.statusbar.SetStatusText("状态：{0}".format(text), 0)
-
-    def SetTunnelStatusText(self,text):
-        self.statusbar.SetStatusText("内网通道数：{0}".format(text), 1)
 
 if __name__ == '__main__':
     app = MainApp()

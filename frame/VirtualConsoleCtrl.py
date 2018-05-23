@@ -47,7 +47,7 @@ class VirtualConsole(wx.Panel):
             if resultContent.startswith('/'):
 
                 self.currentPath = resultContent
-                self.commandZ1='-c/bash/sh'
+                self.commandZ1='-c/bin/sh'
                 self.commandZ2='{0};{1};echo [S];pwd;echo [E]'
 
             else:

@@ -8,8 +8,6 @@
 """
 import urllib
 
-import sys
-
 class shell_entity:
 
     def __init__(self,shell_address,shell_password,shell_script_type,shell_encode_type,database_info,shell_remark,createTime,shell_id=-1):
@@ -52,3 +50,12 @@ class TunnelSettingEntity:
         self.IP=IP
         self.shellID=shellID
 
+class TaskEntity:
+
+    def __init__(self,taskID,taskAddress,taskType,taskContent='',taskStatus='',taskResult=''):
+        self.taskID=taskID
+        self.taskAddress=taskAddress
+        self.taskType=taskType
+        self.taskContent=taskContent
+        self.taskStatus=taskStatus
+        self.taskResult=taskResult

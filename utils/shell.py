@@ -7,15 +7,14 @@
 @time: 2018/2/18 16:52
 """
 import requests
-import config
 
-import sys,thread
+import sys
 
 sys.path.append("..")
 
+import config
 from entity import *
 from dbHelper import DatabaseHelper
-from commonsUtil import ThreadWithReturnValue
 from logger import log
 
 class ShellTools:
@@ -37,82 +36,34 @@ class JspShell:
             self.httpSettingEntity=HttpSettingEntity(config.HTTP_DEFAULT_COOKIE,config.HTTP_DEFAULT_UA)
         self.httpHeaders={'User-Agent': self.httpSettingEntity.user_agent,'Cookie':self.httpSettingEntity.cookie}
 
-    def parseResponse(self,response):
-        responseText=response.text
-        if config.SPLIT_SYMBOL_LEFT in responseText and config.SPLIT_SYMBOL_RIGHT in responseText:
-            resultText=responseText[responseText.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):responseText.find(config.SPLIT_SYMBOL_RIGHT)]
-            if config.ERROR_LABEL in resultText:
-                return config.ERROR_RESPONSE_WITH_SYMBOL,resultText
-            return config.REQUESTS_SUCCESS,resultText
-        else:
-            return config.ERROR_RESPONSE_NO_SYMBOL,response.status_code
-
-    def __getStart(self):
-        payload = {self.shellEntity.shell_password: 'A','z0':self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address,headers=self.httpHeaders,data=payload)
+    def __sendRequests(self,payload):
+        response=None
+        try:
+            response= requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        except Exception as e:
+            log.e(str(e))
+        return response
 
     def getStart(self):
-        try:
-
-            thread=ThreadWithReturnValue(self.__getStart)
-            thread.start()
-            return self.parseResponse(thread.join())
-
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __getDirectoryContent(self,path):
-        payload = {self.shellEntity.shell_password: 'B','z1':path,'z0':self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'A', 'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)
 
     def getDirectoryContent(self, path):
-        try:
-            thread = ThreadWithReturnValue(self.__getDirectoryContent,(path,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __getFileContent(self,path):
-        payload = {self.shellEntity.shell_password: 'C', 'z1': path,'z0':self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'B', 'z1': path, 'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)
 
     def getFileContent(self,path):
-        try:
-            thread = ThreadWithReturnValue(self.__getFileContent, (path,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __createFile(self,path,content):
-        payload = {self.shellEntity.shell_password: 'D', 'z1': path, 'z0': self.shellEntity.shell_encode_type,'z2':content}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'C', 'z1': path, 'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)
 
     def createFile(self,path,content):
-        try:
-            thread = ThreadWithReturnValue(self.__createFile, (path,content,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __deleteFileOrDirectory(self,path):
-        payload = {self.shellEntity.shell_password: 'E', 'z1': path, 'z0': self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'D', 'z1': path, 'z0': self.shellEntity.shell_encode_type,
+                   'z2': content}
+        return self.__sendRequests(payload)
 
     def deleteFileOrDirectory(self,path):
-        try:
-            thread = ThreadWithReturnValue(self.__deleteFileOrDirectory, (path,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
+        payload = {self.shellEntity.shell_password: 'E', 'z1': path, 'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)
 
     def downloadFile(self,path):
         chunk_size = 1024
@@ -122,85 +73,37 @@ class JspShell:
             for data in response.iter_content(chunk_size=chunk_size):
                 yield data
         else:
-            yield self.parseResponse(response)
-
-    def __uploadFile(self,path,hexString):
-        chunk_size = 1024
-        payload = {self.shellEntity.shell_password: 'G', 'z1': path, 'z0': self.shellEntity.shell_encode_type,'z2':hexString}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+            yield response
 
     def uploadFile(self,path,hexString):
-        try:
-            thread = ThreadWithReturnValue(self.__uploadFile, (path,hexString,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __excuteCommand(self,commandZ1,commandZ2):
-        payload = {self.shellEntity.shell_password: 'M', 'z1': commandZ1,'z2':commandZ2, 'z0': self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'G', 'z1': path, 'z0': self.shellEntity.shell_encode_type,
+                   'z2': hexString}
+        return self.__sendRequests(payload)
 
     def excuteCommand(self,commandZ1,commandZ2):
-        try:
-            thread = ThreadWithReturnValue(self.__excuteCommand, (commandZ1,commandZ2,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __getDatabases(self,connectInfo):
-        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo.replace('\n','\r\n'), 'z0': self.shellEntity.shell_encode_type,'z2':''}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'M', 'z1': commandZ1, 'z2': commandZ2,
+                   'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)
 
     def getDatabases(self,connectInfo):
-        try:
-            thread = ThreadWithReturnValue(self.__getDatabases, (connectInfo,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __getTables(self,connectInfo,databaseName):
-        payload = {self.shellEntity.shell_password: 'O', 'z1': connectInfo.replace('\n','\r\n')+'\r\n'+databaseName, 'z0': self.shellEntity.shell_encode_type,'z2':''}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'N', 'z1': connectInfo.replace('\n', '\r\n'),
+                   'z0': self.shellEntity.shell_encode_type, 'z2': ''}
+        return self.__sendRequests(payload)
 
     def getTables(self,connectInfo,databaseName):
-        try:
-            thread = ThreadWithReturnValue(self.__getTables, (connectInfo,databaseName,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __getColumns(self,connectInfo,databaseName,tableName):
-        payload = {self.shellEntity.shell_password: 'P', 'z1': connectInfo.replace('\n','\r\n') + '\r\n' + databaseName+'\r\n'+tableName,
-                   'z0': self.shellEntity.shell_encode_type,'z2':''}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'O',
+                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName,
+                   'z0': self.shellEntity.shell_encode_type, 'z2': ''}
+        return self.__sendRequests(payload)
 
     def getColumns(self,connectInfo,databaseName,tableName):
-        try:
-            thread = ThreadWithReturnValue(self.__getColumns, (connectInfo, databaseName,tableName,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
-
-    def __excuteSqlQuery(self,connectInfo,databaseName,sqlStr):
-        payload = {self.shellEntity.shell_password: 'Q', 'z1': connectInfo.replace('\n','\r\n') + '\r\n' + databaseName ,'z2':sqlStr,
-                   'z0': self.shellEntity.shell_encode_type}
-        return requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+        payload = {self.shellEntity.shell_password: 'P',
+                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName + '\r\n' + tableName,
+                   'z0': self.shellEntity.shell_encode_type, 'z2': ''}
+        return self.__sendRequests(payload)
 
     def excuteSqlQuery(self,connectInfo,databaseName,sqlStr):
-        try:
-            thread = ThreadWithReturnValue(self.__excuteSqlQuery, (connectInfo, databaseName, sqlStr,))
-            thread.start()
-            return self.parseResponse(thread.join())
-        except Exception as e:
-            log.e(str(e))
-            return config.ERROR_DAFANG,str(e)
+        payload = {self.shellEntity.shell_password: 'Q',
+                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName, 'z2': sqlStr,
+                   'z0': self.shellEntity.shell_encode_type}
+        return self.__sendRequests(payload)

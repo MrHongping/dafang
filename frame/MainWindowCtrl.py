@@ -9,7 +9,9 @@
 import sys
 
 import wx
-import wx.aui
+import wx.aui as aui
+
+import wx.lib.agw.customtreectrl as CT
 
 sys.path.append("..")
 
@@ -22,50 +24,37 @@ import DatabaseManagerCtrl
 from utils import config
 
 
-class MainWindow(wx.Panel):
-    def __init__(self, parent,main_app,log):
-        self.main_app=main_app
+class MainWindow(wx.Frame):
+    def __init__(self, parent,log,title):
+
+        wx.Frame.__init__(self, None,title=title)
+
         self.log = log
-        wx.Panel.__init__(self, parent, -1)
 
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.Maximize(True)
 
-        bSizerLeft = wx.BoxSizer(wx.VERTICAL)
+        self._mgr = aui.AuiManager()
 
-        self.notebookCtrl = wx.aui.AuiNotebook(self)
+        self._mgr.SetManagedWindow(self)
 
-        win = ShellListCtrl.ShellList(self, log)
+        self.notebookCtrl = aui.AuiNotebook(self)
 
-        self.notebookCtrl.AddPage(win, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
+        self.shellPage = ShellListCtrl.ShellList(self, log)
 
-        bSizerLeft.Add(self.notebookCtrl, 1, wx.EXPAND)
+        self.notebookCtrl.AddPage(self.shellPage, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
 
-        mainSizer.Add(bSizerLeft, 5, wx.EXPAND)
+        self._mgr.AddPane(self.notebookCtrl, aui.AuiPaneInfo().Name("mainWindow").
+                          CenterPane())
 
-        bSizerRight = wx.BoxSizer(wx.VERTICAL)
+        self.treeCtrlStatus = CT.CustomTreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 100), agwStyle=CT.TR_HIDE_ROOT|CT.TR_NO_LINES|CT.TR_HAS_VARIABLE_ROW_HEIGHT|CT.TR_HAS_BUTTONS)
 
-        sbSizerTunnel = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"内网通道列表"), wx.VERTICAL)
+        self.treeCtrlStatusRoot=self.treeCtrlStatus.AddRoot('hideRoot')
 
-        self.listCtrlTunnel = wx.ListCtrl(sbSizerTunnel.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                          wx.LC_REPORT)
-        sbSizerTunnel.Add(self.listCtrlTunnel, 1, wx.ALL | wx.EXPAND, 5)
+        self._mgr.AddPane(self.treeCtrlStatus, aui.AuiPaneInfo().
+                          Name("statusWindow").Caption("状态信息").
+                          Bottom().Layer(1).Position(1).CloseButton(True).MaximizeButton(True))
 
-        bSizerRight.Add(sbSizerTunnel, 1, wx.EXPAND|wx.ALL, 5)
-
-        sbSizerStatus = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"请求响应状态："), wx.VERTICAL)
-
-        self.textCtrlResponseStatus = wx.TextCtrl(sbSizerStatus.GetStaticBox(), wx.ID_ANY, wx.EmptyString,
-                                                  wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE|wx.TE_READONLY)
-        sbSizerStatus.Add(self.textCtrlResponseStatus, 1, wx.ALL | wx.EXPAND, 5)
-
-        bSizerRight.Add(sbSizerStatus, 1, wx.EXPAND|wx.ALL, 5)
-
-        mainSizer.Add(bSizerRight, 1, wx.EXPAND, 5)
-
-        self.SetSizer(mainSizer)
-        self.Layout()
-
-        self.Centre(wx.BOTH)
+        self._mgr.Update()
 
         self.tabManageMenu = wx.Menu()
         for text in config.TAB_MANAGE_MENU.split():
@@ -73,8 +62,9 @@ class MainWindow(wx.Panel):
             self.notebookCtrl.Bind(wx.EVT_MENU, self.OnTabManageMenuItemSelected, item)
 
         self.notebookCtrl.Bind(wx.aui.EVT_AUINOTEBOOK_TAB_RIGHT_UP,self.OnTabRightClick)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        self.Ontest()
+        self.taskStatusList={}
 
     def OnTabRightClick(self,event):
         self.selectTab=event.GetSelection()
@@ -113,31 +103,85 @@ class MainWindow(wx.Panel):
             for page in range(0, pageCount):
                 self.notebookCtrl.DeletePage(0)
 
-    def Ontest(self):
-        # self.listCtrlTunnel
-
-        self.listCtrlTunnel.InsertColumn(0, u'侦听地址')
-        self.listCtrlTunnel.InsertColumn(1, u"流量")
-
-    def SetRequestStatusText(self,text):
-        self.textCtrlResponseStatus.SetValue(text)
-
     def OpenFileTree(self, shellEntity):
-        win = FileManagerCtrl.FileManager(self, self.log, shellEntity)
-        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,client=wx.ART_FRAME_ICON,size=(20,20)))
-        win.OnInit()
+        fileTreePage = FileManagerCtrl.FileManager(self, self.log, shellEntity)
+        self.notebookCtrl.AddPage(fileTreePage, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_FOLDER,client=wx.ART_FRAME_ICON,size=(20,20)))
+        pageIndex=self.notebookCtrl.GetSelection()
+        self.notebookCtrl.SetPageToolTip(pageIndex,shellEntity.shell_address)
+        fileTreePage.OnInit()
 
     def OpenFileEditor(self, fileName, filePath,shellEntity):
-        win = FileEditorCtrl.FileEditor(self, shellEntity,self.log, filePath)
-        index = self.notebookCtrl.AddPage(win, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,client=wx.ART_FRAME_ICON,size=(20,20)))
-        win.OnInit()
+        fileEditorPage = FileEditorCtrl.FileEditor(self, shellEntity,self.log, filePath)
+        self.notebookCtrl.AddPage(fileEditorPage, fileName,True,wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE,client=wx.ART_FRAME_ICON,size=(20,20)))
+        pageIndex=self.notebookCtrl.GetSelection()
+        self.notebookCtrl.SetPageToolTip(pageIndex, shellEntity.shell_address)
+        fileEditorPage.OnInit()
 
     def OpenVirtualConsole(self,shellEntity):
-        win = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
-        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE,client=wx.ART_FRAME_ICON))
-        win.OnInit()
+        virtualConsolePage = VirtualConsoleCtrl.VirtualConsole(self, shellEntity,self.log)
+        self.notebookCtrl.AddPage(virtualConsolePage, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE,client=wx.ART_FRAME_ICON))
+        pageIndex=self.notebookCtrl.GetSelection()
+        self.notebookCtrl.SetPageToolTip(pageIndex, shellEntity.shell_address)
+        virtualConsolePage.OnInit()
 
     def OpenDatabaseManager(self,shellEntity):
-        win = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)
-        index = self.notebookCtrl.AddPage(win, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_HELP_BOOK,client=wx.ART_FRAME_ICON))
-        win.OnInit()
+        databaseManagerPage = DatabaseManagerCtrl.DatabaseManager(self, shellEntity,self.log)
+        self.notebookCtrl.AddPage(databaseManagerPage, shellEntity.shell_host,True,wx.ArtProvider.GetBitmap(wx.ART_HELP_BOOK,client=wx.ART_FRAME_ICON))
+        pageIndex=self.notebookCtrl.GetSelection()
+        self.notebookCtrl.SetPageToolTip(pageIndex, shellEntity.shell_address)
+        databaseManagerPage.OnInit()
+
+    def __GetStatusParam(self,taskEntity):
+
+        statusAction=''
+        print taskEntity.taskContent
+        if taskEntity.taskType==config.TASK_GET_START:
+            statusAction='初始化请求'
+        if taskEntity.taskType==config.TASK_GET_DIRECTORY_CONTENT:
+            statusAction='目录列表请求（{0}）'.format(taskEntity.taskContent)
+
+        statusString=''
+        itemColor=wx.BLACK
+
+        if taskEntity.taskStatus == config.SUCCESS_RESPONSE:
+            statusString = '请求成功'
+            itemColor=wx.GREEN
+        if taskEntity.taskStatus == config.REQUESTS_SENDING:
+            statusString='请求发送中'
+        if taskEntity.taskStatus==config.ERROR_DAFANG:
+            statusString='请求发送失败'
+            itemColor=wx.RED
+        if taskEntity.taskStatus==config.ERROR_RESPONSE_NO_SYMBOL:
+            statusString='请求未生效,远程脚本错误\r\n'+taskEntity.taskResult
+            itemColor=wx.RED
+        if taskEntity.taskStatus==config.ERROR_RESPONSE_WITH_SYMBOL:
+            statusString='请求成功，但有错误发生\r\n'+taskEntity.taskResult
+            itemColor=wx.RED
+
+        return statusAction,statusString,itemColor
+
+    def SetStatus(self,taskEntity):
+
+        statusAction,statusString, itemColor = self.__GetStatusParam(taskEntity)
+
+        if taskEntity.taskID not in self.taskStatusList:
+
+            taskItem=self.treeCtrlStatus.AppendItem(self.treeCtrlStatusRoot,taskEntity.taskAddress+' '+statusAction)
+            statusItem=self.treeCtrlStatus.AppendItem(taskItem,'状态:'+statusString)
+            self.treeCtrlStatus.SetItemTextColour(statusItem,itemColor)
+            self.treeCtrlStatus.Expand(taskItem)
+            self.taskStatusList[taskEntity.taskID]=taskItem
+            self.treeCtrlStatus.ScrollTo(statusItem)
+
+        else:
+
+            taskItem=self.taskStatusList[taskEntity.taskID]
+            childItem,cookie=self.treeCtrlStatus.GetFirstChild(taskItem)
+            if childItem:
+                self.treeCtrlStatus.SetItemText(childItem,'状态:'+statusString)
+                self.treeCtrlStatus.SetItemTextColour(childItem, itemColor)
+
+    def OnClose(self,event):
+        self._mgr.UnInit()
+        del self._mgr
+        self.Destroy()

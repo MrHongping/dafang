@@ -10,7 +10,8 @@
 import wx, sys, os
 
 sys.path.append("..")
-from utils.shell import ShellTools
+
+from WorkThread import HttpRequestThread
 from utils import commonsUtil,config
 
 
@@ -76,15 +77,15 @@ class FileManager(wx.Panel):
         self.listCtrlDirectory.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         self.treeCtrlFile.SetImageList(self.il)
 
-        self.listCtrlDirectory.InsertColumn(0, u'名称')
-        self.listCtrlDirectory.InsertColumn(1, u"时间")
-        self.listCtrlDirectory.InsertColumn(2, u"大小")
-        self.listCtrlDirectory.InsertColumn(3, u"属性")
+        self.listCtrlDirectory.InsertColumn(0, u'名称',width=80)
+        self.listCtrlDirectory.InsertColumn(1, u"时间",width=80)
+        self.listCtrlDirectory.InsertColumn(2, u"大小",width=80)
+        self.listCtrlDirectory.InsertColumn(3, u"属性",width=80)
 
         self.SetSizer(bSizerMain)
 
-        self.treeCtrlFile.Bind(wx.EVT_LEFT_DOWN, self.OnFileTreeItemClick)
-
+        #windows下第一次点击，会莫名其妙触发两次，暂未定位到问题
+        self.treeCtrlFile.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnFileTreeItemClick)
 
         self.listCtrlDirectory.Bind(wx.EVT_LEFT_DCLICK, self.OnDirectoryItemDoubleClick)
         self.listCtrlDirectory.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnDirectoryItemSelected)
@@ -102,68 +103,51 @@ class FileManager(wx.Panel):
         self.root = self.treeCtrlFile.AddRoot(config.FILE_TREE_ROOT_TEXT)
 
         self.staticTextHost.SetLabelText(self.shellEntity.shell_host)
-        # 发送Shell初始化请求
-        self.shellTools = ShellTools.getShellTools(self.shellEntity)
 
         # 返回当前路径
-        resultCode, resultContent = self.shellTools.getStart()
+        HttpRequestThread(config.TASK_GET_START,shellEntity=self.shellEntity,callBack=self.CallBack_getStart,statusCallback=self.parent.SetStatus).start()
 
-        self.UpdateStatusUI(resultCode, resultContent, resultContent)
+    def CallBack_getStart(self,resultCode,resultContent):
 
-        if resultCode==config.REQUESTS_SUCCESS:
+        if resultCode:
 
             if resultContent.startswith('/'):
 
-                self.separator='/'
+                self.separator = '/'
 
                 currentDirectoryPath = resultContent
 
                 shellFolder = currentDirectoryPath.split(self.separator)
 
-                child = {}
-
+                newInsertItem = self.treeCtrlFile.AppendItem(self.root, '/', image=self.harddiskImage)
                 # 初始化根
-                for x in range(0, len(shellFolder)):
-                    if x == 0:
-                        child[x] = self.treeCtrlFile.AppendItem(self.root, '/',image=self.harddiskImage)
-                    else:
-                        child[x] = self.treeCtrlFile.AppendItem(child[x - 1], shellFolder[x],image=self.folderImage)
-
-                    self.treeCtrlFile.SelectItem(child[x])
+                for item in shellFolder:
+                    if item:
+                        newInsertItem = self.treeCtrlFile.AppendItem(newInsertItem, item, image=self.folderImage)
 
             else:
                 self.separator = '\\'
-                currentDirectoryPath,disks=resultContent.split('\t')
-                diskList=disks.split(':')
-                shellFolder=currentDirectoryPath.split(self.separator)
-                child = {}
+                currentDirectoryPath, disks = resultContent.split('\t')
+                diskList = disks.split(':')
+                shellFolder = currentDirectoryPath.split(self.separator)
 
                 for disk in diskList:
-                    if disk:
-                        newItem=self.treeCtrlFile.AppendItem(self.root, disk+':', image=self.harddiskImage)
-                        if shellFolder[0]==disk+':':
 
-                            # 初始化根
-                            for x in range(1, len(shellFolder)):
-                                if x == 1:
-                                    child[x] = self.treeCtrlFile.AppendItem(newItem, shellFolder[x], image=self.folderImage)
-                                else:
-                                    child[x] = self.treeCtrlFile.AppendItem(child[x - 1], shellFolder[x], image=self.folderImage)
+                    if disk + ':' == shellFolder[0]:
+                        newInsertItem = self.treeCtrlFile.AppendItem(self.root, disk + ':', image=self.harddiskImage)
 
-                                self.treeCtrlFile.SelectItem(child[x])
+                        # 初始化根
+                        for item in shellFolder:
+                            if item and item != disk + ':':
+                                newInsertItem = self.treeCtrlFile.AppendItem(newInsertItem, item,
+                                                                             image=self.folderImage)
+                    elif disk:
+
+                        self.treeCtrlFile.AppendItem(self.root, disk + ':', image=self.harddiskImage)
 
             self.treeCtrlFile.ExpandAll()
 
-            self.comboBoxPath.SetValue('请求中...')
-
-            # 返回目录列表或错误信息
-            resultCode, resultContent = self.shellTools.getDirectoryContent(currentDirectoryPath)
-
-            self.UpdateStatusUI(resultCode, resultContent,currentDirectoryPath)
-
-            # 初始化文件列表
-            if resultCode:
-                self.UpdateDirectoryContent(resultContent)
+            self.treeCtrlFile.SelectItem(newInsertItem)
 
     def OnInitMenu(self):
         self.fileManageMenu = wx.Menu()
@@ -182,12 +166,11 @@ class FileManager(wx.Panel):
             self.listCtrlDirectory.Bind(wx.EVT_MENU, self.OnEmptyDirectoryManageMenuItemSelected, item)
 
     def OnFileTreeItemClick(self, event):
-        pt = event.GetPosition()
-        item, flags = self.treeCtrlFile.HitTest(pt)
+        item = event.GetItem()
         if item:
             self.DoFileTreeItemClick(item)
         event.Skip()
-        
+
     def OnDirectoryItemDoubleClick(self, event):
         itemName=self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
         if commonsUtil.isDirectory(itemName):
@@ -322,7 +305,7 @@ class FileManager(wx.Panel):
 
         if self.treeCtrlFile.GetItemText(item)+'/' ==itemName:
 
-            self.DoFileTreeItemClick(item)
+            self.treeCtrlFile.SelectItem(item)
 
             return
 
@@ -334,28 +317,29 @@ class FileManager(wx.Panel):
 
                 if self.treeCtrlFile.GetItemText(item) + '/' == itemName:
 
-                    self.DoFileTreeItemClick(item)
+                    self.treeCtrlFile.SelectItem(item)
 
                     return
 
     def DoFileTreeItemClick(self,item):
         if item:
             self.selectedFileTreeItem = item
-            self.treeCtrlFile.SelectItem(item)
-            #更新子节点
+                #更新子节点
             self.UpdateFileTree(item)
 
     def UpdateFileTree(self, selectedItem):
         #获取当前单击item的对应路径
         path = self.getItemPath(selectedItem)
 
-        self.comboBoxPath.SetValue('请求中...')
-        resultCode, resultContent = self.shellTools.getDirectoryContent(path)
+        HttpRequestThread(config.TASK_GET_DIRECTORY_CONTENT,shellEntity=self.shellEntity,path=path,callBack=self.Callback_getDirectoryContent,statusCallback=self.parent.SetStatus).start()
 
-        self.UpdateStatusUI(resultCode,resultContent,path)
+    def Callback_getDirectoryContent(self,resultCode,resultContent):
 
         # 更新文件列表
         if resultCode:
+
+            selectedItem=self.selectedFileTreeItem
+
             directoryList=self.UpdateDirectoryContent(resultContent)
 
             itemChildrenTextList = []
@@ -367,12 +351,14 @@ class FileManager(wx.Panel):
                     if child:
                         itemChildrenTextList.append(self.treeCtrlFile.GetItemText(child))
 
+            hasNewChild=False
             for directoryName in directoryList:
                 if directoryName not in itemChildrenTextList:
+                    hasNewChild=True
                     newItem = self.treeCtrlFile.AppendItem(selectedItem, directoryName)
-                    self.treeCtrlFile.SetItemData(newItem, None)
                     self.treeCtrlFile.SetItemImage(newItem, self.folderImage, wx.TreeItemIcon_Normal)
-            self.treeCtrlFile.Expand(selectedItem)
+            if hasNewChild:
+                self.treeCtrlFile.Expand(selectedItem)
 
     def UpdateStatusUI(self, resultCode, resultContent, path):
         if not resultCode:
@@ -428,10 +414,11 @@ class FileManager(wx.Panel):
             self.listCtrlDirectory.SetItem(index, 3, accessPermission)
 
         # 设置文件列表属性的宽度
-        self.listCtrlDirectory.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.listCtrlDirectory.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-        self.listCtrlDirectory.SetColumnWidth(2, wx.LIST_AUTOSIZE)
-        self.listCtrlDirectory.SetColumnWidth(3, wx.LIST_AUTOSIZE)
+        if directoryCount+fileCount>0:
+            self.listCtrlDirectory.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            self.listCtrlDirectory.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+            self.listCtrlDirectory.SetColumnWidth(2, wx.LIST_AUTOSIZE)
+            self.listCtrlDirectory.SetColumnWidth(3, wx.LIST_AUTOSIZE)
 
         self.staticTextCount.SetLabelText('目录（{0}），文件（{1}）'.format(directoryCount,fileCount))
 
@@ -467,7 +454,6 @@ class FileManager(wx.Panel):
     def OpenNewFileEditor(self, fileName):
         path = self.getItemPath(self.selectedFileTreeItem)
         filePath=path + self.separator + fileName
-        #resultCode, fileContent = ShellTools.getShellTools(self.shellEntity).getFileContent(path + self.separator + fileName)
         self.parent.OpenFileEditor(fileName, filePath, self.shellEntity)
 
     def SetRequestStatusText(self, text):

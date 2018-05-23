@@ -43,8 +43,11 @@ class ShellList(wx.Panel):
 
         self.shellManageMenu = wx.Menu()
         for text in config.SHELL_MANAGE_MENU.split():
-            item = self.shellManageMenu.Append(-1, text)
-            self.shellListCtrl.Bind(wx.EVT_MENU, self.OnShellManageMenuItemSelected, item)
+            if text=='||':
+                self.shellManageMenu.AppendSeparator()
+            else:
+                item = self.shellManageMenu.Append(-1, text)
+                self.shellListCtrl.Bind(wx.EVT_MENU, self.OnShellManageMenuItemSelected, item)
 
         self.manageMenu = wx.Menu()
         for text in config.MANAGE_MENU.split():
@@ -95,7 +98,8 @@ class ShellList(wx.Panel):
         if text == u'添加':
             self.ShowShellManageDialog()
         else:
-            wx.MessageBox('For小落落，也许有一天你会用到！')
+            #如果要更改代码请保留此处，嗯呐，这是约定
+            wx.MessageBox('献给小落落，也许有一天你会用到！')
 
     def OnShellManageMenuItemSelected(self, event):
 
