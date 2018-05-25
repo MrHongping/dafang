@@ -174,8 +174,8 @@ class MainWindow(wx.Frame):
         elif taskEntity.taskStatus==config.FILE_DOWNLOAD_SUCCESS:
             statusString='下载成功（{0}）'.format(taskEntity.taskResult)
             itemColor=wx.GREEN
-        elif taskEntity.taskStatus==config.FILE_DOWNLOAD_SUCCESS:
-            statusString='下载出错'
+        elif taskEntity.taskStatus==config.FILE_DOWNLOAD_ERROR:
+            statusString='下载出错\r\n'+taskEntity.taskResult
             itemColor=wx.RED
 
         return statusAction,statusString,itemColor

@@ -33,10 +33,10 @@ class FileManager(wx.Panel):
         comboBoxPathChoices = []
         self.comboBoxPath = wx.ComboBox(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
                                         comboBoxPathChoices, 0)
-        bSizerTop.Add(self.comboBoxPath, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        bSizerTop.Add(self.comboBoxPath, 1, wx.ALIGN_CENTER_VERTICAL)
 
-        self.buttonRead = wx.Button(self, wx.ID_ANY, u"读取", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizerTop.Add(self.buttonRead, 0, wx.ALL, 5)
+        self.buttonRead = wx.Button(self, wx.ID_ANY, u"读取", wx.DefaultPosition, (50,-1), 0)
+        bSizerTop.Add(self.buttonRead, 0, wx.ALL, 2)
 
         bSizerMain.Add(bSizerTop, 0, wx.EXPAND, 5)
 
@@ -140,7 +140,10 @@ class FileManager(wx.Panel):
             directoryList=path.split(self.separator)
             directoryList=[item for item in filter(lambda x: x != '', directoryList)]
             index=0
-            parentItem=self.realRootItem
+            if path.startswith('/'):
+                parentItem=self.realRootItem
+            else:
+                parentItem=self.treeCtrlFile.GetRootItem()
             newItem=None
             while True:
                 childItem=self.hasChild(self.treeCtrlFile,parentItem,directoryList[index])
@@ -425,21 +428,17 @@ class FileManager(wx.Panel):
         contentList = directoryContent.split('\n')
 
         for content in contentList:
-            contentElements = content.split('\t')
-
-            if len(contentElements) < 3:
-                continue
-
-            itemName = contentElements[0]
-            createTime = contentElements[1]
-            fileSize = contentElements[2]
-            accessPermission = contentElements[3]
+            itemName, createTime, fileSize, accessPermission='','','',''
+            try:
+                contentElements = content.split('\t')
+                itemName = contentElements[0]
+                createTime = contentElements[1]
+                fileSize = contentElements[2]
+                accessPermission = contentElements[3]
+            except Exception:
+                pass
 
             self.selectedDirectoryItemList.append(itemName)
-
-            elementParams = ''
-            for i in range(4, len(contentElements)):
-                elementParams += ' ' + contentElements[i]
 
             directoryFlag = commonsUtil.isDirectory(itemName)
 

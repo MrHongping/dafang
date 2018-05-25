@@ -47,7 +47,7 @@ class HttpRequestThread(threading.Thread):
                 self.taskEntity.taskStatus = config.SUCCESS_RESPONSE
                 wx.CallAfter(self.statusCallback, self.taskEntity)
 
-                return True,resultText
+                return True,resultText.strip()
             else:
 
                 self.taskEntity.taskStatus = config.ERROR_RESPONSE_NO_SYMBOL
@@ -81,24 +81,33 @@ class HttpRequestThread(threading.Thread):
         count = 0
         try:
             with open(localPath, 'ab') as file:
-                for data in self.shellTools.downloadFile(path):
-                    if len(data) > 0:
-                        # 删掉菜刀响应标识符，文件前三个字节和后三个字节
-                        if count == 0:
-                            data = data[len(config.SPLIT_SYMBOL_LEFT):]
-                        elif count + len(data) > fileLength:
-                            data = data[:fileLength - count]
+                for flag,data in self.shellTools.downloadFile(path):
+                    if flag:
+                        if len(data) > 0:
+                            # 删掉菜刀响应标识符，文件前三个字节和后三个字节
+                            if count == 0:
+                                data = data[len(config.SPLIT_SYMBOL_LEFT):]
+                            elif count + len(data) > fileLength:
+                                data = data[:fileLength - count]
 
-                        file.write(data)
+                            file.write(data)
 
-                        count += len(data)
+                            count += len(data)
 
-                        self.taskEntity.taskResult = str(count) + '/' + str(fileLength)
+                            self.taskEntity.taskResult = str(count) + '/' + str(fileLength)
+                            wx.CallAfter(self.statusCallback, self.taskEntity)
+                    else:
+                        self.taskEntity.taskStatus = config.FILE_DOWNLOAD_ERROR
+                        self.taskEntity.taskResult = '错误码：{0}\r\n消息体：{1}'.format(data.status_code,
+                                                                                 data.text.replace('\r', '\r\n'))
                         wx.CallAfter(self.statusCallback, self.taskEntity)
+                        return
             self.taskEntity.taskStatus = config.FILE_DOWNLOAD_SUCCESS
             self.taskEntity.taskResult=localPath
+
         except Exception as e:
             self.taskEntity.taskStatus = config.FILE_DOWNLOAD_ERROR
+            self.taskEntity.taskResult = str(e)
         wx.CallAfter(self.statusCallback, self.taskEntity)
 
     def run(self):

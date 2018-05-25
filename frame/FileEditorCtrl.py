@@ -28,14 +28,14 @@ class FileEditor(wx.Panel):
 
         bSizerTop = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.buttonLoad = wx.Button(self, wx.ID_ANY, u"载入", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizerTop.Add(self.buttonLoad, 0, wx.ALL, 5)
+        self.buttonLoad = wx.Button(self, wx.ID_ANY, u"载入", wx.DefaultPosition, (50,-1), 0)
+        bSizerTop.Add(self.buttonLoad, 0, wx.ALL, 2)
 
         self.textCtrlFilePath = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizerTop.Add(self.textCtrlFilePath, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        bSizerTop.Add(self.textCtrlFilePath, 1, wx.ALIGN_CENTER_VERTICAL)
 
-        self.buttonSave = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizerTop.Add(self.buttonSave, 0, wx.ALL, 5)
+        self.buttonSave = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, (50,-1), 0)
+        bSizerTop.Add(self.buttonSave, 0, wx.ALL, 2)
 
         bSizerMain.Add(bSizerTop, 0, wx.EXPAND, 5)
 

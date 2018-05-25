@@ -132,6 +132,7 @@ class VirtualConsole(wx.Panel):
             self.currentPath = currentPath.strip()
 
             if error:
+                error+='\r\n'
                 self.ed.AppendText(error)
                 self.charCount += len(error.decode('utf-8'))
 
