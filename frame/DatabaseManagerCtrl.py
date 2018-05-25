@@ -9,8 +9,8 @@
 import wx,sys
 
 sys.path.append("..")
-
-from utils.shell import ShellTools
+from utils import config
+from WorkThread import HttpRequestThread
 
 class DatabaseManager(wx.Panel):
 
@@ -74,47 +74,59 @@ class DatabaseManager(wx.Panel):
     def OnInit(self):
         if self.shellEntity.database_info:
             connectInfo=self.shellEntity.database_info.split('<X>')[1].replace('</X>','').strip()
-            self.shellTools=ShellTools.getShellTools(self.shellEntity)
-            code,queryResult=self.shellTools.getDatabases(connectInfo)
-            if code:
-                self.root = self.treeCtrlDatabaseShow.AddRoot('root')
-                databaseNameList=queryResult.split('\t')
-                for databaseName in databaseNameList:
-                    if databaseName:
-                        databaseItem=self.treeCtrlDatabaseShow.AppendItem(self.root, databaseName,data='database')
-                        self.treeCtrlDatabaseShow.SetItemImage(databaseItem,self.databaseImg, wx.TreeItemIcon_Normal)
-                self.treeCtrlDatabaseShow.ExpandAll()
-            else:
-                wx.MessageBox(queryResult)
-                self.comboBoxSqlQueryString.SetValue('访问出错')
-        else:
-            self.parent.SetRequestStatusText('Error:数据配置信息为空')
+            HttpRequestThread(action=config.TASK_GET_DATABASES,connectInfo=connectInfo,shellEntity=self.shellEntity,callBack=self.Callback_getDatabases,statusCallback=self.parent.SetStatus).start()
+
+    def Callback_getDatabases(self,resultCode, resultContent):
+        if resultCode:
+            self.root = self.treeCtrlDatabaseShow.AddRoot('root')
+            databaseNameList=resultContent.split('\t')
+            for databaseName in databaseNameList:
+                if databaseName:
+                    databaseItem=self.treeCtrlDatabaseShow.AppendItem(self.root, databaseName,data='database')
+                    self.treeCtrlDatabaseShow.SetItemImage(databaseItem,self.databaseImg, wx.TreeItemIcon_Normal)
+            self.treeCtrlDatabaseShow.ExpandAll()
 
     def OnTreeItemDoubleClick(self,event):
         connectInfo = self.shellEntity.database_info.split('<X>')[1].replace('</X>', '').strip()
 
         itemType=self.treeCtrlDatabaseShow.GetItemData(self.selectedItem)
 
+
         if itemType=='database':
-            code,queryResult=self.shellTools.getTables(connectInfo,self.treeCtrlDatabaseShow.GetItemText(self.selectedItem))
-            if code:
-                tableList=queryResult.split('\t')
-                for table in tableList:
-                    if table:
-                        self.treeCtrlDatabaseShow.AppendItem(self.selectedItem,table,self.tableImg,data='table')
+
+            databaseName = self.treeCtrlDatabaseShow.GetItemText(self.selectedItem)
+
+            HttpRequestThread(action=config.TASK_GET_TABLES,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,callBack=self.Callback_getTables,statusCallback=self.parent.SetStatus).start()
+
         elif itemType=='table':
 
-            databaseName=self.treeCtrlDatabaseShow.GetItemText(self.treeCtrlDatabaseShow.GetItemParent(self.selectedItem))
-            tableName=self.treeCtrlDatabaseShow.GetItemText(self.selectedItem)
-            code, queryResult = self.shellTools.getColumns(connectInfo,databaseName,tableName)
-            if code:
-                tableList = queryResult.split('\t')
-                for table in tableList:
-                    if table:
-                        self.treeCtrlDatabaseShow.AppendItem(self.selectedItem, table, self.columnImg)
+            databaseName = self.treeCtrlDatabaseShow.GetItemText(
+                self.treeCtrlDatabaseShow.GetItemParent(self.selectedItem))
+            tableName = self.treeCtrlDatabaseShow.GetItemText(self.selectedItem)
+
+            HttpRequestThread(action=config.TASK_GET_COLUMNS, shellEntity=self.shellEntity, connectInfo=connectInfo,
+                              databaseName=databaseName,tableName=tableName, callBack=self.Callback_getColumns,
+                              statusCallback=self.parent.SetStatus).start()
+
             self.comboBoxSqlQueryString.SetValue('SELECT *FROM {0} ORDER BY 1 DESC'.format(tableName))
 
         event.Skip()
+
+    def Callback_getTables(self,resultCode, resultContent):
+        if resultCode:
+            tableList = resultContent.split('\t')
+            for table in tableList:
+                if table:
+                    self.treeCtrlDatabaseShow.AppendItem(self.selectedItem, table, self.tableImg, data='table')
+                    self.treeCtrlDatabaseShow.Expand(self.selectedItem)
+
+    def Callback_getColumns(self,resultCode, resultContent):
+        if resultCode:
+            tableList = resultContent.split('\t')
+            for table in tableList:
+                if table:
+                    self.treeCtrlDatabaseShow.AppendItem(self.selectedItem, table, self.columnImg)
+                    self.treeCtrlDatabaseShow.Expand(self.selectedItem)
 
     def OnTreeItemClick(self,event):
         pt = event.GetPosition()
@@ -135,9 +147,11 @@ class DatabaseManager(wx.Panel):
 
         queryString=self.comboBoxSqlQueryString.GetValue()
 
-        code, queryResult = self.shellTools.excuteSqlQuery(connectInfo, databaseName, queryString)
-        if code:
-            result_list=queryResult.split('\r\n')
+        HttpRequestThread(action=config.TASK_EXCUTE_SQLQUERY,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,queryString=queryString,callBack=self.Callback_excuteSqlQuery,statusCallback=self.parent.SetStatus).start()
+
+    def Callback_excuteSqlQuery(self,resultCode, resultContent):
+        if resultCode:
+            result_list=resultContent.split('\r\n')
             columnsNameList=result_list[0].split('\t|\t')
             for index in range(0,len(columnsNameList)):
                 if columnsNameList[index]:

@@ -11,6 +11,7 @@ sys.path.append("..")
 
 from utils import config
 from utils.shell import ShellTools
+from WorkThread import HttpRequestThread
 
 class VirtualConsole(wx.Panel):
 
@@ -40,9 +41,12 @@ class VirtualConsole(wx.Panel):
         self.commandZ2=''
 
     def OnInit(self):
-        resultCode,resultContent=self.shellTools.getStart()
+        HttpRequestThread(config.TASK_GET_START, shellEntity=self.shellEntity, callBack=self.CallBack_getStart,
+                          statusCallback=self.parent.SetStatus).start()
 
-        if resultCode==config.REQUESTS_SUCCESS:
+    def CallBack_getStart(self, resultCode, resultContent):
+
+        if resultCode:
 
             if resultContent.startswith('/'):
 
@@ -94,39 +98,14 @@ class VirtualConsole(wx.Panel):
             self.ed.AppendText('\r\n')
             self.charCount += len('\r\n'.decode('utf-8'))
 
-            inputCommand=lineText.replace(config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip()),'')
+            self.inputCommand=lineText.replace(config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip()),'')
 
-            if inputCommand:
+            if self.inputCommand:
 
-                self.charCount += len(inputCommand.decode('utf-8'))
+                self.charCount += len(self.inputCommand.decode('utf-8'))
 
-                resultCode, resultContent=self.shellTools.excuteCommand(self.commandZ1,self.commandZ2.format(self.currentPath,inputCommand))
+                HttpRequestThread(config.TASK_EXCUTE_COMMAND,path=self.currentPath,shellEntity=self.shellEntity,commandZ1=self.commandZ1,commandZ2=self.commandZ2.format(self.currentPath,self.inputCommand),command=self.inputCommand,callBack=self.Callback_excuteCommand,statusCallback=self.parent.SetStatus).start()
 
-                if resultCode==config.REQUESTS_SUCCESS:
-
-                    self.history.insert(0,inputCommand)
-
-                    self.histortCommandPointer=-1
-
-                    commandResult,tmp=resultContent.split('[S]')
-
-                    self.ed.AppendText(commandResult)
-
-                    self.charCount+=len(commandResult.decode('utf-8'))
-
-                    currentPath,error=tmp.split('[E]')
-
-                    self.currentPath=currentPath.strip()
-
-                    if error:
-                        self.ed.AppendText(error)
-                        self.charCount += len(error.decode('utf-8'))
-                else:
-                    self.parent.SetRequestStatusText(resultContent)
-
-            terminalPath = config.TERMINAL_PATH_TEMPLATE.format(str(self.currentPath))
-            self.ed.AppendText(terminalPath)
-            self.charCount += len(terminalPath.decode('utf-8'))
         elif key==ord('X'):
             if event.ControlDown():
                 pass
@@ -134,3 +113,28 @@ class VirtualConsole(wx.Panel):
                 event.Skip()
         else:
             event.Skip()
+
+    def Callback_excuteCommand(self,resultCode, resultContent):
+        if resultCode:
+
+            self.history.insert(0, self.inputCommand)
+
+            self.histortCommandPointer = -1
+
+            commandResult, tmp = resultContent.split('[S]')
+
+            self.ed.AppendText(commandResult)
+
+            self.charCount += len(commandResult.decode('utf-8'))
+
+            currentPath, error = tmp.split('[E]')
+
+            self.currentPath = currentPath.strip()
+
+            if error:
+                self.ed.AppendText(error)
+                self.charCount += len(error.decode('utf-8'))
+
+        terminalPath = config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip())
+        self.ed.AppendText(terminalPath)
+        self.charCount += len(terminalPath.decode('utf-8'))

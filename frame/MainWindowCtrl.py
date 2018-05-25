@@ -80,7 +80,6 @@ class MainWindow(wx.Frame):
             self.notebookCtrl.DeletePage(self.selectTab)
 
         if text == u'关闭其他选项卡':
-            print self.selectTab
             pageCount = self.notebookCtrl.GetPageCount()
             for page in range(self.selectTab + 1, pageCount):
                 self.notebookCtrl.DeletePage(self.selectTab + 1)
@@ -91,7 +90,6 @@ class MainWindow(wx.Frame):
         if text == u'关闭右侧所有选项卡':
             pageCount = self.notebookCtrl.GetPageCount()
             for page in range(self.selectTab+1, pageCount):
-                print page
                 self.notebookCtrl.DeletePage(self.selectTab+1)
 
         if text == u'关闭左侧所有选项卡':
@@ -134,11 +132,24 @@ class MainWindow(wx.Frame):
     def __GetStatusParam(self,taskEntity):
 
         statusAction=''
-        print taskEntity.taskContent
         if taskEntity.taskType==config.TASK_GET_START:
             statusAction='初始化请求'
-        if taskEntity.taskType==config.TASK_GET_DIRECTORY_CONTENT:
+        elif taskEntity.taskType==config.TASK_GET_DIRECTORY_CONTENT:
             statusAction='目录列表请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_GET_FILE_CONTENT:
+            statusAction='文件内容请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_CREATE_FILE:
+            statusAction='创建文件请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_EXCUTE_COMMAND:
+            statusAction='执行命令请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_GET_DATABASES:
+            statusAction='获取数据库列表请求'
+        elif taskEntity.taskType==config.TASK_GET_TABLES:
+            statusAction='获取数据库表名请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_GET_COLUMNS:
+            statusAction='获取数据表列名请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_EXCUTE_SQLQUERY:
+            statusAction='执行SQL语句请求（{0}）'.format(taskEntity.taskContent)
 
         statusString=''
         itemColor=wx.BLACK
@@ -146,16 +157,25 @@ class MainWindow(wx.Frame):
         if taskEntity.taskStatus == config.SUCCESS_RESPONSE:
             statusString = '请求成功'
             itemColor=wx.GREEN
-        if taskEntity.taskStatus == config.REQUESTS_SENDING:
+        elif taskEntity.taskStatus == config.REQUESTS_SENDING:
             statusString='请求发送中'
-        if taskEntity.taskStatus==config.ERROR_DAFANG:
+        elif taskEntity.taskStatus==config.ERROR_DAFANG:
             statusString='请求发送失败'
             itemColor=wx.RED
-        if taskEntity.taskStatus==config.ERROR_RESPONSE_NO_SYMBOL:
+        elif taskEntity.taskStatus==config.ERROR_RESPONSE_NO_SYMBOL:
             statusString='请求未生效,远程脚本错误\r\n'+taskEntity.taskResult
             itemColor=wx.RED
-        if taskEntity.taskStatus==config.ERROR_RESPONSE_WITH_SYMBOL:
+        elif taskEntity.taskStatus==config.ERROR_RESPONSE_WITH_SYMBOL:
             statusString='请求成功，但有错误发生\r\n'+taskEntity.taskResult
+            itemColor=wx.RED
+        elif taskEntity.taskStatus==config.FILE_DOWNLOADING:
+            statusString='下载中'+taskEntity.taskResult
+            itemColor=wx.BLACK
+        elif taskEntity.taskStatus==config.FILE_DOWNLOAD_SUCCESS:
+            statusString='下载成功（{0}）'.format(taskEntity.taskResult)
+            itemColor=wx.GREEN
+        elif taskEntity.taskStatus==config.FILE_DOWNLOAD_SUCCESS:
+            statusString='下载出错'
             itemColor=wx.RED
 
         return statusAction,statusString,itemColor

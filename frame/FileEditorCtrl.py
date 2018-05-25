@@ -10,8 +10,8 @@ import  wx,sys
 
 sys.path.append("..")
 
-from utils.shell import ShellTools
 from utils import config
+from WorkThread import HttpRequestThread
 
 class FileEditor(wx.Panel):
 
@@ -55,18 +55,11 @@ class FileEditor(wx.Panel):
         self.ShowFileContent(self.filePath)
 
     def ShowFileContent(self,filePath):
+        HttpRequestThread(config.TASK_GET_FILE_CONTENT,shellEntity=self.shellEntity,path=filePath,callBack=self.Callback_getFileContent,statusCallback=self.parent.SetStatus).start()
 
-        resultCode, resultContent = ShellTools.getShellTools(self.shellEntity).getFileContent(filePath)
-
-        if resultCode == config.REQUESTS_SUCCESS:
-
+    def Callback_getFileContent(self,resultCode,resultContent):
+        if resultCode:
             self.textCtrlFileContent.SetValue(resultContent)
-
-            self.parent.SetRequestStatusText('文件载入成功')
-
-        elif resultCode==config.ERROR_RESPONSE_WITH_SYMBOL:
-
-            self.parent.SetRequestStatusText('执行成功，但有错误发生\n' + resultContent)
 
     def OnSaveBtnClick(self,event):
 
@@ -75,18 +68,7 @@ class FileEditor(wx.Panel):
         fileContent=self.textCtrlFileContent.GetValue()
 
         if filePath:
-            resultCode, saveCode = ShellTools.getShellTools(self.shellEntity).createFile(filePath,fileContent)
-
-            if resultCode == config.REQUESTS_SUCCESS:
-
-                if saveCode=='1':
-                    self.parent.SetRequestStatusText('保存成功')
-                else:
-                    self.parent.SetRequestStatusText('执行成功，但有错误发生\n'+saveCode)
-
-            elif resultCode==config.ERROR_RESPONSE_WITH_SYMBOL:
-
-                self.parent.SetRequestStatusText('执行成功，但有错误发生\n' + saveCode)
+            HttpRequestThread(config.TASK_CREATE_FILE, shellEntity=self.shellEntity, path=filePath,content=fileContent,callBack=None, statusCallback=self.parent.SetStatus).start()
 
     def OnLoadBtnClick(self,event):
 
