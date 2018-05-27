@@ -50,14 +50,20 @@ class VirtualConsole(wx.Panel):
 
             if resultContent.startswith('/'):
 
-                self.currentPath = resultContent
-                self.commandZ1='-c/bin/sh'
+                self.currentPath = resultContent.split('\t')[0]
+                if self.shellEntity.shell_script_type == 'JSP':
+                    self.commandZ1='-c/bin/sh'
+                else:
+                    self.commandZ1 = '/bin/sh'
                 self.commandZ2='{0};{1};echo [S];pwd;echo [E]'
 
             else:
-
-                self.currentPath,disks=resultContent.split('\t')
-                self.commandZ1 = '/ccmd'
+                inforList=resultContent.split('\t')
+                self.currentPath,disks=inforList[0],inforList[1]
+                if self.shellEntity.shell_script_type=='JSP':
+                    self.commandZ1 = '/ccmd'
+                else:
+                    self.commandZ1='cmd'
                 self.commandZ2 = 'cd /d {0}&{1}&echo [S]&cd&echo [E]'
 
             terminalPath=config.TERMINAL_PATH_TEMPLATE.format(self.currentPath.strip())

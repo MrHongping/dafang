@@ -44,7 +44,7 @@ USER_AGENT_LIST=['Mozilla/5.0 (Linux; U; Android 4.1.1; ja-jp; Galaxy Nexus Buil
 
 TERMINAL_PATH_TEMPLATE='[{0}]$'
 
-DATABASE_SETTING_TEMPLATE=[
+DATABASE_SETTING_TEMPLATE_JSP=[
     '''<T>XDB</T>
 <X>
 com.mysql.jdbc.Driver\r\njdbc:mysql://localhost/test?user=root&password=123456
@@ -57,6 +57,27 @@ com.microsoft.sqlserver.jdbc.SQLServerDriver\r\njdbc:sqlserver://127.0.0.1:1433;
 <X>
 oracle.jdbc.driver.OracleDriver\r\njdbc:oracle:thin:user/password@127.0.0.1:1521/test
 </X>''']
+DATABASE_SETTING_TEMPLATE_PHP=[
+    '''<T>MYSQL</T>
+<H>localhost</H>
+<U>root</U>
+<P>password</P>
+<L>utf8</L>''',
+    '''<T>MYSQL</T>
+<H>localhost</H>
+<U>root</U>
+<P>password</P>
+<L>utf8</L>
+<N>mysql</N>''',
+    '''<T>MSSQL</T>
+<H>localhost</H>
+<U>sa</U>
+<P>password</P>
+<N>master</N>''',
+    '''<T>ORACLE</T>
+<H>localhost</H>
+<U>dbuser</U>
+<P>dbpwd</P>''']
 
 #请求返回值
 REQUESTS_SENDING=0

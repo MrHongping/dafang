@@ -420,8 +420,12 @@ class DatabaseSettingDialog(wx.Dialog):
         self.m_staticText1.Wrap(-1)
         bSizer5.Add(self.m_staticText1, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.comboBoxExamples = wx.ComboBox(self, wx.ID_ANY, u"选择数据库类型", wx.DefaultPosition, wx.DefaultSize,
-                                            config.DATABASE_SETTING_TEMPLATE, 0)
+        comboBoxChoice=''
+        if shellEntity.shell_script_type=='JSP':
+            comboBoxChoice=config.DATABASE_SETTING_TEMPLATE_JSP
+        if shellEntity.shell_script_type=='PHP':
+            comboBoxChoice=config.DATABASE_SETTING_TEMPLATE_PHP
+        self.comboBoxExamples = wx.ComboBox(self, wx.ID_ANY, u"选择数据库类型", wx.DefaultPosition, wx.DefaultSize,comboBoxChoice, 0)
         bSizer5.Add(self.comboBoxExamples, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         bSizer4.Add(bSizer5, 0, wx.EXPAND, 5)
@@ -455,7 +459,7 @@ class DatabaseSettingDialog(wx.Dialog):
         self.buttonUpdate.Bind(wx.EVT_BUTTON, self.OnButtonUpdateClick)
 
     def EvtComboBox(self,event):
-        if event.GetString() in config.DATABASE_SETTING_TEMPLATE:
+        if event.GetString():
             self.textCtrlDatabaseSetting.SetValue(event.GetString())
         event.Skip()
 

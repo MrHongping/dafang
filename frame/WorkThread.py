@@ -43,8 +43,11 @@ class HttpRequestThread(threading.Thread):
                     wx.CallAfter(self.statusCallback, self.taskEntity)
 
                     return False,None
-
-                self.taskEntity.taskStatus = config.SUCCESS_RESPONSE
+                if (self.action==config.TASK_UPLOAD_FILE or self.action==config.TASK_CREATE_FILE)and resultText.strip()=='0':
+                    self.taskEntity.taskStatus = config.ERROR_RESPONSE_WITH_SYMBOL
+                    self.taskEntity.taskResult='可能不具备操作权限'
+                else:
+                    self.taskEntity.taskStatus = config.SUCCESS_RESPONSE
                 wx.CallAfter(self.statusCallback, self.taskEntity)
 
                 return True,resultText.strip()
@@ -86,7 +89,7 @@ class HttpRequestThread(threading.Thread):
                         if len(data) > 0:
                             # 删掉菜刀响应标识符，文件前三个字节和后三个字节
                             if count == 0:
-                                data = data[len(config.SPLIT_SYMBOL_LEFT):]
+                                data = data[data.find(config.SPLIT_SYMBOL_LEFT)+len(config.SPLIT_SYMBOL_LEFT):]
                             elif count + len(data) > fileLength:
                                 data = data[:fileLength - count]
 
@@ -137,7 +140,7 @@ class HttpRequestThread(threading.Thread):
             command = self.kwargs['command']
             self.taskEntity.taskContent=command
 
-        connectInfo=''
+        connectInfo=None
         if 'connectInfo' in self.kwargs:
             connectInfo = self.kwargs['connectInfo']
 

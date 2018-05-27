@@ -1,3 +1,17 @@
-s='/root/usr/local/test/'.split('/')
-s= [item for item in filter(lambda x:x != '', s)]
-print s[1:]
+s='''<root>
+<T>MYSQL</T>
+<H>localhost</H>
+<U>root</U>
+<P>password</P>
+<L>utf8</L>
+</root>'''
+
+from xml.etree import ElementTree
+
+def print_node(node):
+    print "node.tag:%s" % node.tag
+    print "node.text:%s" % node.text
+
+root=ElementTree.fromstring(s)
+node_find = root.find('T')
+print_node(node_find)

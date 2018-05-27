@@ -59,3 +59,10 @@ class TaskEntity:
         self.taskContent=taskContent
         self.taskStatus=taskStatus
         self.taskResult=taskResult
+
+class DBConnectEntity:
+
+    def __init__(self,dbAddress,dbUsername,dbPassword):
+        self.dbAddress=dbAddress
+        self.dbUsername=dbUsername
+        self.dbPassword=dbPassword

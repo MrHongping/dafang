@@ -172,7 +172,7 @@ class FileManager(wx.Panel):
 
                 self.separator = '/'
 
-                currentDirectoryPath = resultContent
+                currentDirectoryPath = resultContent.split('\t')[0]
 
                 shellFolder = currentDirectoryPath.split(self.separator)
 
@@ -184,7 +184,8 @@ class FileManager(wx.Panel):
 
             else:
                 self.separator = '\\'
-                currentDirectoryPath, disks = resultContent.split('\t')
+                inforList=resultContent.split('\t')
+                currentDirectoryPath, disks = inforList[0],inforList[1]
                 diskList = disks.split(':')
                 shellFolder = currentDirectoryPath.split(self.separator)
 
@@ -344,7 +345,7 @@ class FileManager(wx.Panel):
             with open(localPath,'rb') as file:
                 content=file.read()
             if content:
-                HttpRequestThread(action=config.TASK_UPLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+localFilename,cotent=content.encode('hex'),callBack=None,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(action=config.TASK_UPLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+localFilename,content=content.encode('hex'),callBack=None,statusCallback=self.parent.SetStatus).start()
 
     def ClickFileTreeItemByName(self,itemName):
 
@@ -395,19 +396,9 @@ class FileManager(wx.Panel):
 
         selectedItem = self.selectedFileTreeItem
 
-        # itemChildrenTextList = []
-        # child, cookie = self.treeCtrlFile.GetFirstChild(selectedItem)
-        # if child:
-        #     itemChildrenTextList.append(self.treeCtrlFile.GetItemText(child))
-        #     while (child.IsOk()):
-        #         child, cookie = self.treeCtrlFile.GetNextChild(selectedItem, cookie)
-        #         if child:
-        #             itemChildrenTextList.append(self.treeCtrlFile.GetItemText(child))
-
         hasNewChild = False
         for directoryName in directoryList:
             if self.hasChild(self.treeCtrlFile,selectedItem,directoryName.replace('/',''))==None:
-            # if directoryName not in itemChildrenTextList:
                 hasNewChild = True
                 newItem = self.treeCtrlFile.AppendItem(selectedItem, directoryName)
                 self.treeCtrlFile.SetItemImage(newItem, self.folderImage, wx.TreeItemIcon_Normal)
@@ -429,6 +420,7 @@ class FileManager(wx.Panel):
 
         for content in contentList:
             itemName, createTime, fileSize, accessPermission='','','',''
+
             try:
                 contentElements = content.split('\t')
                 itemName = contentElements[0]
@@ -437,6 +429,9 @@ class FileManager(wx.Panel):
                 accessPermission = contentElements[3]
             except Exception:
                 pass
+
+            if itemName == './' or itemName == '../':
+                continue
 
             self.selectedDirectoryItemList.append(itemName)
 
@@ -497,9 +492,3 @@ class FileManager(wx.Panel):
         path = self.getItemPath(self.selectedFileTreeItem)
         filePath=path + self.separator + fileName
         self.parent.OpenFileEditor(fileName, filePath, self.shellEntity)
-
-    def SetRequestStatusText(self, text):
-        self.parent.SetRequestStatusText(text)
-
-    def SetComboBoxText(self, text):
-        self.comboBoxPath.SetValue(text)

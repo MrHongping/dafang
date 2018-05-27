@@ -9,7 +9,7 @@
 import wx,sys
 
 sys.path.append("..")
-from utils import config
+from utils import config,commonsUtil,entity
 from WorkThread import HttpRequestThread
 
 class DatabaseManager(wx.Panel):
@@ -73,8 +73,19 @@ class DatabaseManager(wx.Panel):
 
     def OnInit(self):
         if self.shellEntity.database_info:
-            connectInfo=self.shellEntity.database_info.split('<X>')[1].replace('</X>','').strip()
-            HttpRequestThread(action=config.TASK_GET_DATABASES,connectInfo=connectInfo,shellEntity=self.shellEntity,callBack=self.Callback_getDatabases,statusCallback=self.parent.SetStatus).start()
+            connectInfo=None
+            xmlStr='<root>{0}</root>'.format(self.shellEntity.database_info)
+            if self.shellEntity.shell_script_type=='JSP':
+                connectInfo=commonsUtil.get_dbInfo(xmlStr,'X')
+            elif self.shellEntity.shell_script_type=='PHP':
+                dbAddress=commonsUtil.get_dbInfo(xmlStr,'H')
+                dbUser = commonsUtil.get_dbInfo(xmlStr, 'U')
+                dbPassword = commonsUtil.get_dbInfo(xmlStr, 'P')
+                connectInfo=entity.DBConnectEntity(dbAddress,dbUser,dbPassword)
+            if connectInfo:
+                HttpRequestThread(action=config.TASK_GET_DATABASES, connectInfo=connectInfo,
+                                  shellEntity=self.shellEntity, callBack=self.Callback_getDatabases,
+                                  statusCallback=self.parent.SetStatus).start()
 
     def Callback_getDatabases(self,resultCode, resultContent):
         if resultCode:
@@ -87,7 +98,15 @@ class DatabaseManager(wx.Panel):
             self.treeCtrlDatabaseShow.ExpandAll()
 
     def OnTreeItemDoubleClick(self,event):
-        connectInfo = self.shellEntity.database_info.split('<X>')[1].replace('</X>', '').strip()
+        connectInfo = None
+        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info)
+        if self.shellEntity.shell_script_type == 'JSP':
+            connectInfo = commonsUtil.get_dbInfo(xmlStr, 'X')
+        elif self.shellEntity.shell_script_type == 'PHP':
+            dbAddress = commonsUtil.get_dbInfo(xmlStr, 'H')
+            dbUser = commonsUtil.get_dbInfo(xmlStr, 'U')
+            dbPassword = commonsUtil.get_dbInfo(xmlStr, 'P')
+            connectInfo = entity.DBConnectEntity(dbAddress, dbUser, dbPassword)
 
         itemType=self.treeCtrlDatabaseShow.GetItemData(self.selectedItem)
 
@@ -141,7 +160,15 @@ class DatabaseManager(wx.Panel):
         self.listCtrlTableShow.DeleteAllItems()
         self.listCtrlTableShow.DeleteAllColumns()
 
-        connectInfo = self.shellEntity.database_info.split('<X>')[1].replace('</X>', '').strip()
+        connectInfo = None
+        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info)
+        if self.shellEntity.shell_script_type == 'JSP':
+            connectInfo = commonsUtil.get_dbInfo(xmlStr, 'X')
+        elif self.shellEntity.shell_script_type == 'PHP':
+            dbAddress = commonsUtil.get_dbInfo(xmlStr, 'H')
+            dbUser = commonsUtil.get_dbInfo(xmlStr, 'U')
+            dbPassword = commonsUtil.get_dbInfo(xmlStr, 'P')
+            connectInfo = entity.DBConnectEntity(dbAddress, dbUser, dbPassword)
 
         databaseName = self.treeCtrlDatabaseShow.GetItemText(self.treeCtrlDatabaseShow.GetItemParent(self.selectedItem))
 

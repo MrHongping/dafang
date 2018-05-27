@@ -13,20 +13,13 @@ def isDirectory(itemName):
     else:
         return False
 
-from threading import Thread
+from xml.etree import ElementTree
 
+def get_dbInfo(xmlStr,nodeStr):
+    root = ElementTree.fromstring(xmlStr)
+    node_find = root.find(nodeStr)
+    if node_find is not None:
+        return node_find.text
+    else:
+        return None
 
-class ThreadWithReturnValue(Thread):
-    def __init__(self, target, args=()):
-        super(ThreadWithReturnValue, self).__init__()
-        self._target=target
-        self._args=args
-        self._return = None
-
-    def run(self):
-        if self._target is not None:
-            self._return = self._target(*self._args)
-
-    def join(self,timeout=None):
-        Thread.join(self,timeout=timeout)
-        return self._return
