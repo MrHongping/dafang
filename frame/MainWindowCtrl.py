@@ -46,8 +46,8 @@ class MainWindow(wx.Frame):
         self._mgr.AddPane(self.notebookCtrl, aui.AuiPaneInfo().Name("mainWindow").
                           CenterPane())
 
-        self.treeCtrlStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 100),
-                                                style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT | wx.TR_NO_LINES|wx.TR_HAS_BUTTONS)
+        self.treeCtrlStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 150),
+                                                style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT | wx.TR_NO_LINES|wx.TR_HAS_BUTTONS|wx.TR_HAS_VARIABLE_ROW_HEIGHT)
         self.treeCtrlStatusRoot=self.treeCtrlStatus.AddRoot('hideRoot')
 
         self._mgr.AddPane(self.treeCtrlStatus, aui.AuiPaneInfo().
@@ -144,6 +144,8 @@ class MainWindow(wx.Frame):
             statusAction='上传文件请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_DOWNLOAD_FILE:
             statusAction='下载文件请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_DELETE_FILE_OR_DIRECTORY:
+            statusAction='删除文件请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_EXCUTE_COMMAND:
             statusAction='执行命令请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_GET_DATABASES:
