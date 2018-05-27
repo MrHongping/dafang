@@ -318,8 +318,6 @@ class FileManager(wx.Panel):
                 defaultFile=itemName, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
 
-            dlg.SetFilterIndex(2)
-
             if dlg.ShowModal() == wx.ID_OK:
                 localPath = dlg.GetPath()
                 HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+itemName,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
@@ -336,8 +334,6 @@ class FileManager(wx.Panel):
             self, message="选择文件", defaultDir=os.getcwd(),
             defaultFile='', wildcard="All files (*.*)|*.*", style=wx.FD_OPEN
         )
-
-        dlg.SetFilterIndex(2)
 
         if dlg.ShowModal() == wx.ID_OK:
             localFilename=dlg.GetFilename()

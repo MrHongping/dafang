@@ -142,6 +142,8 @@ class MainWindow(wx.Frame):
             statusAction='创建文件请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_UPLOAD_FILE:
             statusAction='上传文件请求（{0}）'.format(taskEntity.taskContent)
+        elif taskEntity.taskType==config.TASK_DOWNLOAD_FILE:
+            statusAction='下载文件请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_EXCUTE_COMMAND:
             statusAction='执行命令请求（{0}）'.format(taskEntity.taskContent)
         elif taskEntity.taskType==config.TASK_GET_DATABASES:
