@@ -46,8 +46,8 @@ class MainWindow(wx.Frame):
         self._mgr.AddPane(self.notebookCtrl, aui.AuiPaneInfo().Name("mainWindow").
                           CenterPane())
 
-        self.treeCtrlStatus = CT.CustomTreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 100), agwStyle=CT.TR_HIDE_ROOT|CT.TR_NO_LINES|CT.TR_HAS_VARIABLE_ROW_HEIGHT|CT.TR_HAS_BUTTONS)
-
+        self.treeCtrlStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 100),
+                                                style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT | wx.TR_NO_LINES|wx.TR_HAS_BUTTONS)
         self.treeCtrlStatusRoot=self.treeCtrlStatus.AddRoot('hideRoot')
 
         self._mgr.AddPane(self.treeCtrlStatus, aui.AuiPaneInfo().
@@ -196,7 +196,7 @@ class MainWindow(wx.Frame):
             self.treeCtrlStatus.Expand(taskItem)
             self.taskStatusList[taskEntity.taskID]=taskItem
             self.treeCtrlStatus.ScrollTo(statusItem)
-
+            self.treeCtrlStatus.SetFocusedItem(statusItem)
         else:
 
             taskItem=self.taskStatusList[taskEntity.taskID]
