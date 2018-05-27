@@ -74,7 +74,7 @@ class DatabaseManager(wx.Panel):
     def OnInit(self):
         if self.shellEntity.database_info:
             connectInfo=None
-            xmlStr='<root>{0}</root>'.format(self.shellEntity.database_info)
+            xmlStr='<root>{0}</root>'.format(self.shellEntity.database_info.replace('&','&amp;'))
             if self.shellEntity.shell_script_type=='JSP':
                 connectInfo=commonsUtil.get_dbInfo(xmlStr,'X')
             elif self.shellEntity.shell_script_type=='PHP':
@@ -99,7 +99,7 @@ class DatabaseManager(wx.Panel):
 
     def OnTreeItemDoubleClick(self,event):
         connectInfo = None
-        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info)
+        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info.replace('&','&amp;'))
         if self.shellEntity.shell_script_type == 'JSP':
             connectInfo = commonsUtil.get_dbInfo(xmlStr, 'X')
         elif self.shellEntity.shell_script_type == 'PHP':
@@ -161,7 +161,7 @@ class DatabaseManager(wx.Panel):
         self.listCtrlTableShow.DeleteAllColumns()
 
         connectInfo = None
-        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info)
+        xmlStr = '<root>{0}</root>'.format(self.shellEntity.database_info.replace('&','&amp;'))
         if self.shellEntity.shell_script_type == 'JSP':
             connectInfo = commonsUtil.get_dbInfo(xmlStr, 'X')
         elif self.shellEntity.shell_script_type == 'PHP':

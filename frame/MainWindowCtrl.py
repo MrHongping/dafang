@@ -198,7 +198,6 @@ class MainWindow(wx.Frame):
             self.treeCtrlStatus.Expand(taskItem)
             self.taskStatusList[taskEntity.taskID]=taskItem
             self.treeCtrlStatus.ScrollTo(statusItem)
-            self.treeCtrlStatus.SetFocusedItem(statusItem)
         else:
 
             taskItem=self.taskStatusList[taskEntity.taskID]

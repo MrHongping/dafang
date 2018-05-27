@@ -94,19 +94,19 @@ class JspShell:
 
     def getTables(self,connectInfo,databaseName):
         payload = {self.shellEntity.shell_password: 'O',
-                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName,
+                   'z1': connectInfo.replace('\n', '\r\n') + databaseName,
                    'z0': self.shellEntity.shell_encode_type, 'z2': ''}
         return self.__sendRequests(payload)
 
     def getColumns(self,connectInfo,databaseName,tableName):
         payload = {self.shellEntity.shell_password: 'P',
-                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName + '\r\n' + tableName,
+                   'z1': connectInfo.replace('\n', '\r\n') + databaseName + '\r\n' + tableName,
                    'z0': self.shellEntity.shell_encode_type, 'z2': ''}
         return self.__sendRequests(payload)
 
     def excuteSqlQuery(self,connectInfo,databaseName,sqlStr):
         payload = {self.shellEntity.shell_password: 'Q',
-                   'z1': connectInfo.replace('\n', '\r\n') + '\r\n' + databaseName, 'z2': sqlStr,
+                   'z1': connectInfo.replace('\n', '\r\n') + databaseName, 'z2': sqlStr,
                    'z0': self.shellEntity.shell_encode_type}
         return self.__sendRequests(payload)
 
