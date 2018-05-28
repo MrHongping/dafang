@@ -307,7 +307,7 @@ class HttpSettingDialog(wx.Dialog):
         bSizer6.Add(self.m_staticText3, 0, wx.ALL, 5)
 
         self.comboBoxUserAgentExamples = wx.ComboBox(self, wx.ID_ANY, u"选择浏览器User-Agent", wx.DefaultPosition,
-                                                     wx.Size(300, -1), config.USER_AGENT_LIST, 0)
+                                                     wx.Size(600, -1), config.USER_AGENT_LIST, 0)
         bSizer6.Add(self.comboBoxUserAgentExamples, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
@@ -318,7 +318,7 @@ class HttpSettingDialog(wx.Dialog):
         self.m_staticText31.Wrap(-1)
         bSizer8.Add(self.m_staticText31, 0, wx.ALL, 5)
 
-        self.textCtrlUserAgent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, 50), wx.TE_MULTILINE)
+        self.textCtrlUserAgent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(600, 100), wx.TE_MULTILINE)
         bSizer8.Add(self.textCtrlUserAgent, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer8, 0, wx.EXPAND, 5)
@@ -329,7 +329,7 @@ class HttpSettingDialog(wx.Dialog):
         self.m_staticText4.Wrap(-1)
         bSizer7.Add(self.m_staticText4, 0, wx.ALL, 5)
 
-        self.textCtrlCookie = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, 100),
+        self.textCtrlCookie = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(600, 100),
                                           wx.TE_MULTILINE | wx.VSCROLL)
         bSizer7.Add(self.textCtrlCookie, 0, wx.ALL, 5)
 

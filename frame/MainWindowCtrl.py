@@ -169,10 +169,10 @@ class MainWindow(wx.Frame):
             statusString='请求发送失败'
             itemColor=wx.RED
         elif taskEntity.taskStatus==config.ERROR_RESPONSE_NO_SYMBOL:
-            statusString='请求未生效,远程脚本错误\r\n'+taskEntity.taskResult
+            statusString='请求未生效,远程脚本错误（{0}）'.format(taskEntity.taskResult)
             itemColor=wx.RED
         elif taskEntity.taskStatus==config.ERROR_RESPONSE_WITH_SYMBOL:
-            statusString='请求成功，但有错误发生\r\n'+taskEntity.taskResult
+            statusString='请求成功，但有错误发生（{0}）'.format(taskEntity.taskResult)
             itemColor=wx.RED
         elif taskEntity.taskStatus==config.FILE_DOWNLOADING:
             statusString='下载中'+taskEntity.taskResult
@@ -181,7 +181,7 @@ class MainWindow(wx.Frame):
             statusString='下载成功（{0}）'.format(taskEntity.taskResult)
             itemColor=wx.GREEN
         elif taskEntity.taskStatus==config.FILE_DOWNLOAD_ERROR:
-            statusString='下载出错\r\n'+taskEntity.taskResult
+            statusString='下载出错（{0}）'.format(taskEntity.taskResult)
             itemColor=wx.RED
 
         return statusAction,statusString,itemColor

@@ -43,7 +43,7 @@ class HttpRequestThread(threading.Thread):
                     wx.CallAfter(self.statusCallback, self.taskEntity)
 
                     return False,None
-                if (self.action==config.TASK_UPLOAD_FILE or self.action==config.TASK_CREATE_FILE)and resultText.strip()=='0':
+                if (self.action==config.TASK_UPLOAD_FILE or self.action==config.TASK_CREATE_FILE or self.action==config.TASK_DELETE_FILE_OR_DIRECTORY)and resultText.strip()=='0':
                     self.taskEntity.taskStatus = config.ERROR_RESPONSE_WITH_SYMBOL
                     self.taskEntity.taskResult='可能不具备操作权限'
                 else:
@@ -54,7 +54,7 @@ class HttpRequestThread(threading.Thread):
             else:
 
                 self.taskEntity.taskStatus = config.ERROR_RESPONSE_NO_SYMBOL
-                self.taskEntity.taskResult='错误码：{0}\r\n消息体：{1}'.format(response.status_code,response.text.replace('\r','\r\n'))
+                self.taskEntity.taskResult='错误码：{0} 消息体：{1}'.format(response.status_code,response.text)
                 wx.CallAfter(self.statusCallback, self.taskEntity)
 
                 return False,None
@@ -101,8 +101,8 @@ class HttpRequestThread(threading.Thread):
                             wx.CallAfter(self.statusCallback, self.taskEntity)
                     else:
                         self.taskEntity.taskStatus = config.FILE_DOWNLOAD_ERROR
-                        self.taskEntity.taskResult = '错误码：{0}\r\n消息体：{1}'.format(data.status_code,
-                                                                                 data.text.replace('\r', '\r\n'))
+                        self.taskEntity.taskResult = '错误码：{0} 消息体：{1}'.format(data.status_code,
+                                                                                 data.text)
                         wx.CallAfter(self.statusCallback, self.taskEntity)
                         return
             self.taskEntity.taskStatus = config.FILE_DOWNLOAD_SUCCESS
