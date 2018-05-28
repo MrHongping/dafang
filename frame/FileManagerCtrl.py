@@ -8,12 +8,22 @@
 """
 
 import wx, sys, os
+import wx.lib.mixins.listctrl as listmix
 
 sys.path.append("..")
 
 from WorkThread import HttpRequestThread
 from utils import commonsUtil,config
 
+class SortableListCtrl(wx.ListCtrl,listmix.ColumnSorterMixin,listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, parent, ID, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0):
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+        listmix.ColumnSorterMixin.__init__(self,4)
+
+    def GetListCtrl(self):
+        return self
 
 class FileManager(wx.Panel):
     def __init__(self, parent, log, shellEntity):
@@ -62,7 +72,7 @@ class FileManager(wx.Panel):
 
         bSizerDirectoryList = wx.BoxSizer(wx.VERTICAL)
 
-        self.listCtrlDirectory = wx.ListCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT)
+        self.listCtrlDirectory = SortableListCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT)
         bSizerDirectoryList.Add(self.listCtrlDirectory, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizerBottom.Add(bSizerDirectoryList, 2, wx.EXPAND, 5)
@@ -414,6 +424,8 @@ class FileManager(wx.Panel):
 
         contentList = directoryContent.split('\n')
 
+        directoryContentData={}
+
         for content in contentList:
             itemName, createTime, fileSize, accessPermission='','','',''
 
@@ -445,6 +457,11 @@ class FileManager(wx.Panel):
             self.listCtrlDirectory.SetItem(index, 1, createTime)
             self.listCtrlDirectory.SetItem(index, 2, fileSize)
             self.listCtrlDirectory.SetItem(index, 3, accessPermission)
+            self.listCtrlDirectory.SetItemData(index,index+1)
+
+            directoryContentData[index+1]=(itemName, createTime, fileSize, accessPermission)
+
+        self.listCtrlDirectory.itemDataMap=directoryContentData
 
         # 设置文件列表属性的宽度
         if directoryCount+fileCount>0:
