@@ -36,6 +36,8 @@ class FileManager(wx.Panel):
         
         self.separator='\\'
 
+        self.directoryFlagList={}
+
         bSizerMain = wx.BoxSizer(wx.VERTICAL)
 
         bSizerTop = wx.BoxSizer(wx.HORIZONTAL)
@@ -241,8 +243,9 @@ class FileManager(wx.Panel):
         event.Skip()
 
     def OnDirectoryItemDoubleClick(self, event):
-        itemName=self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
-        if commonsUtil.isDirectory(itemName):
+        itemName=self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex)
+        itemData=self.listCtrlDirectory.GetItemData(self.selectedDirectoryItemIndex)
+        if self.directoryFlagList[itemData]:
             self.ClickFileTreeItemByName(itemName)
         else:
             self.OpenNewFileEditor(itemName)
@@ -260,7 +263,9 @@ class FileManager(wx.Panel):
         if self.selectedDirectoryItemIndex==-1:
             self.listCtrlDirectory.PopupMenu(self.emptyDirectoryManageMenu)
         else:
-            if commonsUtil.isDirectory(self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]):
+            itemText=self.listCtrlDirectory.GetItemText(self)
+            itemData = self.listCtrlDirectory.GetItemData(self.selectedDirectoryItemIndex)
+            if self.directoryFlagList[itemData]:
                 self.listCtrlDirectory.PopupMenu(self.directoryManageMenu)
             else:
                 self.listCtrlDirectory.PopupMenu(self.fileManageMenu)
@@ -273,8 +278,6 @@ class FileManager(wx.Panel):
 
         path = self.getItemPath(self.selectedFileTreeItem)
 
-        itemName=self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
-
         if text == u'下载文件到服务器':
             pass
 
@@ -283,7 +286,7 @@ class FileManager(wx.Panel):
 
         if text == u'删除':
             HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY, shellEntity=self.shellEntity,
-                              path=path + self.separator + itemName, callBack=None,
+                              path=path + self.separator + text, callBack=None,
                               statusCallback=self.parent.SetStatus).start()
         self.UpdateFileTree(self.selectedFileTreeItem)
         event.Skip()
@@ -311,7 +314,7 @@ class FileManager(wx.Panel):
 
         remotePath=self.getItemPath(self.selectedFileTreeItem)
 
-        itemName = self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
+        # itemName = self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
 
         fileLength=int(self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex,2))
 
@@ -325,15 +328,15 @@ class FileManager(wx.Panel):
         if text==u'下载':
             dlg = wx.FileDialog(
                 self, message="下载为", defaultDir=os.getcwd(),
-                defaultFile=itemName, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+                defaultFile=text, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
 
             if dlg.ShowModal() == wx.ID_OK:
                 localPath = dlg.GetPath()
-                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+itemName,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+text,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
 
         if text ==u'删除':
-            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+itemName,callBack=None,statusCallback=self.parent.SetStatus).start()
+            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+text,callBack=None,statusCallback=self.parent.SetStatus).start()
             self.UpdateFileTree(self.selectedFileTreeItem)
 
         if text==u'编辑':
@@ -355,25 +358,9 @@ class FileManager(wx.Panel):
 
     def ClickFileTreeItemByName(self,itemName):
 
-        item,cookie=self.treeCtrlFile.GetFirstChild(self.selectedFileTreeItem)
-
-        if self.treeCtrlFile.GetItemText(item)+'/' ==itemName:
-
+        item=self.hasChild(self.treeCtrlFile,self.selectedFileTreeItem,itemName)
+        if item:
             self.treeCtrlFile.SelectItem(item)
-
-            return
-
-        while item.IsOk():
-
-            item,cookie=self.treeCtrlFile.GetNextChild(self.selectedFileTreeItem,cookie)
-
-            if item:
-
-                if self.treeCtrlFile.GetItemText(item) + '/' == itemName:
-
-                    self.treeCtrlFile.SelectItem(item)
-
-                    return
 
     def DoFileTreeItemClick(self,item):
         if item:
@@ -415,8 +402,6 @@ class FileManager(wx.Panel):
     def UpdateDirectoryContent(self, directoryContent):
         self.listCtrlDirectory.DeleteAllItems()
 
-        self.selectedDirectoryItemList = []
-
         subDirectoryList=[]
 
         directoryCount=0
@@ -441,8 +426,6 @@ class FileManager(wx.Panel):
             if itemName == './' or itemName == '../':
                 continue
 
-            self.selectedDirectoryItemList.append(itemName)
-
             directoryFlag = commonsUtil.isDirectory(itemName)
 
             if directoryFlag:
@@ -450,9 +433,11 @@ class FileManager(wx.Panel):
                 directoryName = itemName[:len(itemName) - 1]
                 subDirectoryList.append(directoryName.replace('/',self.separator))
                 index = self.listCtrlDirectory.InsertItem(self.listCtrlDirectory.GetItemCount(), directoryName, self.folderImage)
+                self.directoryFlagList[index+1]=True
             else:
                 fileCount+=1
                 index = self.listCtrlDirectory.InsertItem(self.listCtrlDirectory.GetItemCount(), itemName, self.fileImage)
+                self.directoryFlagList[index + 1] = False
 
             self.listCtrlDirectory.SetItem(index, 1, createTime)
             self.listCtrlDirectory.SetItem(index, 2, fileSize)
