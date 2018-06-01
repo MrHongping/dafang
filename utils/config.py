@@ -21,7 +21,7 @@ DIRECTORY_MANAGE_MENU=u'下载文件到服务器 上传 删除 新建'
 
 EMPTY_DIRECTORY_MANAGE_MENU=u'下载文件到服务器 上传'
 
-TAB_MANAGE_MENU=u'关闭当前选项卡 关闭其他选项卡 关闭右侧所有选项卡 关闭左侧所有选项卡 关闭所有选项卡'
+TAB_MANAGE_MENU=u'打开新的Shell选项卡 关闭当前选项卡 关闭其他选项卡 关闭右侧所有选项卡 关闭左侧所有选项卡 关闭所有选项卡'
 
 MANAGE_MENU=u'添加 关于'
 

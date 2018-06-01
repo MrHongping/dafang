@@ -11,8 +11,6 @@ import sys
 import wx
 import wx.aui as aui
 
-import wx.lib.agw.customtreectrl as CT
-
 sys.path.append("..")
 
 import ShellListCtrl
@@ -22,6 +20,9 @@ import VirtualConsoleCtrl
 import DatabaseManagerCtrl
 
 from utils import config
+
+ID_HTTP_STATUS_WINDOW = wx.NewId()
+ID_TUNNEL_STATUS_WINDOW = wx.NewId()
 
 
 class MainWindow(wx.Frame):
@@ -39,67 +40,139 @@ class MainWindow(wx.Frame):
 
         self.notebookCtrl = aui.AuiNotebook(self)
 
-        self.shellPage = ShellListCtrl.ShellList(self, log)
-
-        self.notebookCtrl.AddPage(self.shellPage, 'Shell',True,wx.ArtProvider.GetBitmap(wx.ART_GO_HOME,client=wx.ART_FRAME_ICON))
+        self.shellPage = ShellListCtrl.ShellList(self, self.log)
+        self.notebookCtrl.AddPage(self.shellPage, 'Shell', True,
+                                  wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, client=wx.ART_FRAME_ICON))
 
         self._mgr.AddPane(self.notebookCtrl, aui.AuiPaneInfo().Name("mainWindow").
                           CenterPane())
 
-        self.treeCtrlStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(100, 150),
-                                                style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT | wx.TR_NO_LINES|wx.TR_HAS_BUTTONS|wx.TR_HAS_VARIABLE_ROW_HEIGHT)
-        self.treeCtrlStatusRoot=self.treeCtrlStatus.AddRoot('hideRoot')
+        self.treeCtrlHttpStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(-1, 150),
+                                          style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT | wx.TR_NO_LINES | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT)
+        self.treeCtrlHttpStatusRoot = self.treeCtrlHttpStatus.AddRoot('hideRoot')
 
-        self._mgr.AddPane(self.treeCtrlStatus, aui.AuiPaneInfo().
-                          Name("statusWindow").Caption("状态信息").
-                          Bottom().Layer(1).Position(1).CloseButton(True).MaximizeButton(True))
+        self._mgr.AddPane(self.treeCtrlHttpStatus, aui.AuiPaneInfo().
+                          Name("HttpStatusWindow").Caption("请求状态信息").
+                          Bottom().Layer(1).Position(1).CloseButton(True).MaximizeButton(True).MinimizeButton(True))
+
+        self.treeCtrlTunnelStatus = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(300, -1),
+                                              style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT | wx.TR_NO_LINES | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT)
+        self.treeCtrlTunnelStatusRoot = self.treeCtrlTunnelStatus.AddRoot('hideRoot')
+
+        self._mgr.AddPane(self.treeCtrlTunnelStatus, aui.AuiPaneInfo().
+                          Name("TunnelStatusWindow").Caption("隧道状态信息").
+                          Right().Layer(1).Position(1).CloseButton(True).MaximizeButton(True).MinimizeButton(True).Hide())
 
         self._mgr.Update()
+
+        self.notebookCtrl.Bind(wx.aui.EVT_AUINOTEBOOK_TAB_RIGHT_UP,self.OnTabRightClick)
+
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+        self.taskStatusList={}
+
+        self.OnInitMenu()
+
+    def OnInitMenu(self):
 
         self.tabManageMenu = wx.Menu()
         for text in config.TAB_MANAGE_MENU.split():
             item = self.tabManageMenu.Append(-1, text)
             self.notebookCtrl.Bind(wx.EVT_MENU, self.OnTabManageMenuItemSelected, item)
 
-        self.notebookCtrl.Bind(wx.aui.EVT_AUINOTEBOOK_TAB_RIGHT_UP,self.OnTabRightClick)
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.menubar = wx.MenuBar()
 
-        self.taskStatusList={}
+        self.shellTabManageMenu = wx.Menu()
+        for text in config.TAB_MANAGE_MENU.split():
+            item = self.shellTabManageMenu.Append(-1, text)
+            self.Bind(wx.EVT_MENU, self.OnTabManageMenuItemSelected, item)
+        self.menubar.Append(self.shellTabManageMenu, '&标签页')
+
+        self.windowMenu = wx.Menu()
+
+        self.windowMenu.AppendCheckItem(ID_HTTP_STATUS_WINDOW, 'Http请求状态窗体')
+        self.windowMenu.AppendCheckItem(ID_TUNNEL_STATUS_WINDOW, '内网隧道状态窗体')
+
+        self.windowMenu.Check(ID_HTTP_STATUS_WINDOW, True)
+
+        self.Bind(wx.EVT_MENU, self.OnWindowMenu, id=ID_HTTP_STATUS_WINDOW)
+        self.Bind(wx.EVT_MENU, self.OnWindowMenu, id=ID_TUNNEL_STATUS_WINDOW)
+
+        self.menubar.Append(self.windowMenu, '&窗体')
+
+        self.aboutMenu = wx.Menu()
+
+        item=self.aboutMenu.Append(-1, '关于大方')
+
+        self.Bind(wx.EVT_MENU, self.OnAboutMenu, item)
+
+        self.menubar.Append(self.aboutMenu, '&关于')
+
+        self.SetMenuBar(self.menubar)
 
     def OnTabRightClick(self,event):
-        self.selectTab=event.GetSelection()
         self.notebookCtrl.PopupMenu(self.tabManageMenu)
+
+    def OnAboutMenu(self,event):
+        # 如果要更改代码请保留此处，嗯，这是约定
+        wx.MessageBox('献给小落落，也许有一天你会用到！')
+
+    def AddNewShellPage(self):
+        self.shellPage = ShellListCtrl.ShellList(self, self.log)
+        self.notebookCtrl.AddPage(self.shellPage, 'Shell', True,
+                                  wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, client=wx.ART_FRAME_ICON))
 
     def OnTabManageMenuItemSelected(self, event):
 
         item = self.tabManageMenu.FindItemById(event.GetId())
+        
+        if not item:
+            item=self.shellTabManageMenu.FindItemById(event.GetId())
 
         text = item.GetText()
 
+
+        if text == u'打开新的Shell选项卡':
+            self.AddNewShellPage()
+
         if text == u'关闭当前选项卡':
-            self.notebookCtrl.DeletePage(self.selectTab)
+            self.notebookCtrl.DeletePage(self.notebookCtrl.GetSelection())
 
         if text == u'关闭其他选项卡':
             pageCount = self.notebookCtrl.GetPageCount()
-            for page in range(self.selectTab + 1, pageCount):
-                self.notebookCtrl.DeletePage(self.selectTab + 1)
+            for page in range(self.notebookCtrl.GetSelection() + 1, pageCount):
+                self.notebookCtrl.DeletePage(self.notebookCtrl.GetSelection() + 1)
 
-            for page in range(0,self.selectTab):
+            for page in range(0,self.notebookCtrl.GetSelection()):
                 self.notebookCtrl.DeletePage(0)
 
         if text == u'关闭右侧所有选项卡':
             pageCount = self.notebookCtrl.GetPageCount()
-            for page in range(self.selectTab+1, pageCount):
-                self.notebookCtrl.DeletePage(self.selectTab+1)
+            for page in range(self.notebookCtrl.GetSelection()+1, pageCount):
+                self.notebookCtrl.DeletePage(self.notebookCtrl.GetSelection()+1)
 
         if text == u'关闭左侧所有选项卡':
-            for page in range(0,self.selectTab):
+            for page in range(0,self.notebookCtrl.GetSelection()):
                 self.notebookCtrl.DeletePage(0)
 
         if text == u'关闭所有选项卡':
             pageCount = self.notebookCtrl.GetPageCount()
             for page in range(0, pageCount):
                 self.notebookCtrl.DeletePage(0)
+
+    def OnWindowMenu(self,event):
+        eid = event.GetId()
+        if eid==ID_HTTP_STATUS_WINDOW:
+            if self.windowMenu.IsChecked(ID_HTTP_STATUS_WINDOW):
+                self._mgr.GetPane("HttpStatusWindow").Show().Bottom().Layer(1).Position(1)
+            else:
+                self._mgr.GetPane("HttpStatusWindow").Hide()
+        if eid==ID_TUNNEL_STATUS_WINDOW:
+            if self.windowMenu.IsChecked(ID_TUNNEL_STATUS_WINDOW):
+                self._mgr.GetPane("TunnelStatusWindow").Show().Right().Layer(1).Position(1)
+            else:
+                self._mgr.GetPane("TunnelStatusWindow").Hide()
+        self._mgr.Update()
 
     def OpenFileTree(self, shellEntity):
         fileTreePage = FileManagerCtrl.FileManager(self, self.log, shellEntity)
@@ -192,19 +265,19 @@ class MainWindow(wx.Frame):
 
         if taskEntity.taskID not in self.taskStatusList:
 
-            taskItem=self.treeCtrlStatus.AppendItem(self.treeCtrlStatusRoot,taskEntity.taskAddress+' '+statusAction)
-            statusItem=self.treeCtrlStatus.AppendItem(taskItem,'状态:'+statusString)
-            self.treeCtrlStatus.SetItemTextColour(statusItem,itemColor)
-            self.treeCtrlStatus.Expand(taskItem)
+            taskItem=self.treeCtrlHttpStatus.AppendItem(self.treeCtrlHttpStatusRoot,taskEntity.taskAddress+' '+statusAction)
+            statusItem=self.treeCtrlHttpStatus.AppendItem(taskItem,'状态:'+statusString)
+            self.treeCtrlHttpStatus.SetItemTextColour(statusItem,itemColor)
+            self.treeCtrlHttpStatus.Expand(taskItem)
             self.taskStatusList[taskEntity.taskID]=taskItem
-            self.treeCtrlStatus.ScrollTo(statusItem)
+            self.treeCtrlHttpStatus.ScrollTo(statusItem)
         else:
 
             taskItem=self.taskStatusList[taskEntity.taskID]
-            childItem,cookie=self.treeCtrlStatus.GetFirstChild(taskItem)
+            childItem,cookie=self.treeCtrlHttpStatus.GetFirstChild(taskItem)
             if childItem:
-                self.treeCtrlStatus.SetItemText(childItem,'状态:'+statusString)
-                self.treeCtrlStatus.SetItemTextColour(childItem, itemColor)
+                self.treeCtrlHttpStatus.SetItemText(childItem,'状态:'+statusString)
+                self.treeCtrlHttpStatus.SetItemTextColour(childItem, itemColor)
 
     def OnClose(self,event):
         self._mgr.UnInit()

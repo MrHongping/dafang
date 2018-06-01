@@ -237,10 +237,11 @@ class FileManager(wx.Panel):
             self.listCtrlDirectory.Bind(wx.EVT_MENU, self.OnEmptyDirectoryManageMenuItemSelected, item)
 
     def OnFileTreeItemClick(self, event):
-        item = event.GetItem()
-        if item:
-            self.DoFileTreeItemClick(item)
-        event.Skip()
+        if self.treeCtrlFile:
+            item = event.GetItem()
+            if item:
+                self.DoFileTreeItemClick(item)
+            event.Skip()
 
     def OnDirectoryItemDoubleClick(self, event):
         itemName=self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex)
@@ -263,7 +264,6 @@ class FileManager(wx.Panel):
         if self.selectedDirectoryItemIndex==-1:
             self.listCtrlDirectory.PopupMenu(self.emptyDirectoryManageMenu)
         else:
-            itemText=self.listCtrlDirectory.GetItemText(self)
             itemData = self.listCtrlDirectory.GetItemData(self.selectedDirectoryItemIndex)
             if self.directoryFlagList[itemData]:
                 self.listCtrlDirectory.PopupMenu(self.directoryManageMenu)
@@ -274,19 +274,21 @@ class FileManager(wx.Panel):
     def OnDirectoryManageMenuItemSelected(self,event):
         item = self.directoryManageMenu.FindItemById(event.GetId())
 
-        text = item.GetText()
+        menuSelectItemText = item.GetText()
 
         path = self.getItemPath(self.selectedFileTreeItem)
 
-        if text == u'下载文件到服务器':
+        directoryName=self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex)
+
+        if menuSelectItemText == u'下载文件到服务器':
             pass
 
-        if text == u'上传':
+        if menuSelectItemText == u'上传':
             self.UploadFile(path)
 
-        if text == u'删除':
+        if menuSelectItemText == u'删除':
             HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY, shellEntity=self.shellEntity,
-                              path=path + self.separator + text, callBack=None,
+                              path=path + self.separator + directoryName, callBack=None,
                               statusCallback=self.parent.SetStatus).start()
         self.UpdateFileTree(self.selectedFileTreeItem)
         event.Skip()
@@ -294,14 +296,14 @@ class FileManager(wx.Panel):
     def OnEmptyDirectoryManageMenuItemSelected(self,event):
         item = self.emptyDirectoryManageMenu.FindItemById(event.GetId())
 
-        text = item.GetText()
+        menuSelectItemText = item.GetText()
 
         path = self.getItemPath(self.selectedFileTreeItem)
 
-        if text == u'下载文件到服务器':
+        if menuSelectItemText == u'下载文件到服务器':
             pass
 
-        if text == u'上传':
+        if menuSelectItemText == u'上传':
             self.UploadFile(path)
 
         self.UpdateFileTree(self.selectedFileTreeItem)
@@ -310,37 +312,37 @@ class FileManager(wx.Panel):
 
         item = self.fileManageMenu.FindItemById(event.GetId())
 
-        text = item.GetText()
+        menuSelectItemText = item.GetText()
 
         remotePath=self.getItemPath(self.selectedFileTreeItem)
 
-        # itemName = self.selectedDirectoryItemList[self.selectedDirectoryItemIndex]
+        fileName = self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex)
 
         fileLength=int(self.listCtrlDirectory.GetItemText(self.selectedDirectoryItemIndex,2))
 
-        if text==u'下载文件到服务器':
+        if menuSelectItemText==u'下载文件到服务器':
             pass
 
-        if text==u'上传':
+        if menuSelectItemText==u'上传':
             self.UploadFile(remotePath)
             self.UpdateFileTree(self.selectedFileTreeItem)
 
-        if text==u'下载':
+        if menuSelectItemText==u'下载':
             dlg = wx.FileDialog(
                 self, message="下载为", defaultDir=os.getcwd(),
-                defaultFile=text, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+                defaultFile=fileName, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
 
             if dlg.ShowModal() == wx.ID_OK:
                 localPath = dlg.GetPath()
-                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+text,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
 
-        if text ==u'删除':
-            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+text,callBack=None,statusCallback=self.parent.SetStatus).start()
+        if menuSelectItemText ==u'删除':
+            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,callBack=None,statusCallback=self.parent.SetStatus).start()
             self.UpdateFileTree(self.selectedFileTreeItem)
 
-        if text==u'编辑':
-            self.OpenNewFileEditor(text)
+        if menuSelectItemText==u'编辑':
+            self.OpenNewFileEditor(fileName)
 
     def UploadFile(self,remotePath):
         dlg = wx.FileDialog(
@@ -460,31 +462,32 @@ class FileManager(wx.Panel):
         return subDirectoryList
 
     def getItemPath(self,item):
+        if self.treeCtrlFile:
 
-        path=self.treeCtrlFile.GetItemText(item)
+            path=self.treeCtrlFile.GetItemText(item)
 
-        if path == '/':
+            if path == '/':
+                return path
+
+            if ':' in path:
+                return path+self.separator
+
+            parentItem= self.treeCtrlFile.GetItemParent(item)
+            while parentItem.IsOk():
+
+                itemText=self.treeCtrlFile.GetItemText(parentItem)
+
+                if itemText == '/':
+                    path = self.treeCtrlFile.GetItemText(parentItem) + path
+                    break
+
+                path=self.treeCtrlFile.GetItemText(parentItem)+self.separator+path
+
+                if ':' in itemText:
+                    break
+
+                parentItem= self.treeCtrlFile.GetItemParent(parentItem)
             return path
-
-        if ':' in path:
-            return path+self.separator
-
-        parentItem= self.treeCtrlFile.GetItemParent(item)
-        while parentItem.IsOk():
-
-            itemText=self.treeCtrlFile.GetItemText(parentItem)
-
-            if itemText == '/':
-                path = self.treeCtrlFile.GetItemText(parentItem) + path
-                break
-
-            path=self.treeCtrlFile.GetItemText(parentItem)+self.separator+path
-
-            if ':' in itemText:
-                break
-
-            parentItem= self.treeCtrlFile.GetItemParent(parentItem)
-        return path
 
     def OpenNewFileEditor(self, fileName):
         path = self.getItemPath(self.selectedFileTreeItem)

@@ -97,9 +97,6 @@ class ShellList(wx.Panel):
         text = item.GetText()
         if text == u'添加':
             self.ShowShellManageDialog()
-        else:
-            #如果要更改代码请保留此处，嗯呐，这是约定
-            wx.MessageBox('献给小落落，也许有一天你会用到！')
 
     def OnShellManageMenuItemSelected(self, event):
 
