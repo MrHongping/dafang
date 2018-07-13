@@ -70,6 +70,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         self.taskStatusList={}
+        self.sessionBelongList = {}
 
         self.OnInitMenu()
 
@@ -202,7 +203,7 @@ class MainWindow(wx.Frame):
         self.notebookCtrl.SetPageToolTip(pageIndex, shellEntity.shell_address)
         databaseManagerPage.OnInit()
 
-    def __GetStatusParam(self,taskEntity):
+    def _GetHttpStatusParam(self,taskEntity):
 
         statusAction=''
         if taskEntity.taskType==config.TASK_GET_START:
@@ -259,9 +260,9 @@ class MainWindow(wx.Frame):
 
         return statusAction,statusString,itemColor
 
-    def SetStatus(self,taskEntity):
+    def SetHttpStatus(self,taskEntity):
 
-        statusAction,statusString, itemColor = self.__GetStatusParam(taskEntity)
+        statusAction,statusString, itemColor = self._GetHttpStatusParam(taskEntity)
 
         if taskEntity.taskID not in self.taskStatusList:
 
@@ -278,6 +279,44 @@ class MainWindow(wx.Frame):
             if childItem:
                 self.treeCtrlHttpStatus.SetItemText(childItem,'状态:'+statusString)
                 self.treeCtrlHttpStatus.SetItemTextColour(childItem, itemColor)
+
+    def _GetTunnelStatusParam(self,sessionEntity):
+
+
+        itemColor=wx.BLACK
+
+        if sessionEntity.sessionStatus == config.SESSION_INFO_MESSAGE:
+            itemColor=wx.GREEN
+        elif sessionEntity.sessionStatus == config.SESSION_DEBUG_MESSAGE:
+            itemColor=wx.GREEN
+        elif sessionEntity.sessionStatus == config.SESSION_ERROR_MESSAGE:
+            itemColor=wx.RED
+
+        sessionMessage=sessionEntity.sessionMessage
+
+        return sessionMessage,itemColor
+
+    def SetTunnelStatus(self,sessionEntity):
+
+        sessionMessage, itemColor = self._GetTunnelStatusParam(sessionEntity)
+
+        print 'start'
+
+        if sessionEntity.sessionBelong not in self.sessionBelongList:
+            print 'start1'+sessionEntity.sessionBelong
+            sessionItem=self.treeCtrlTunnelStatus.AppendItem(self.treeCtrlTunnelStatusRoot,sessionEntity.sessionBelong)
+            self.treeCtrlHttpStatus.Expand(sessionItem)
+            self.sessionBelongList[sessionEntity.sessionBelong]=sessionItem
+            self.treeCtrlHttpStatus.ScrollTo(sessionItem)
+            print 'end1'
+        else:
+            print 'start2'+sessionEntity.sessionBelong
+            sessionItem=self.sessionBelongList[sessionEntity.sessionBelong]
+            childItem=self.treeCtrlTunnelStatus.AppendItem(sessionItem,sessionMessage)
+            self.treeCtrlHttpStatus.SetItemTextColour(childItem, itemColor)
+            print 'end2'
+
+        print 'end'
 
     def OnClose(self,event):
         self._mgr.UnInit()

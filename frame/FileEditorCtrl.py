@@ -55,7 +55,7 @@ class FileEditor(wx.Panel):
         self.ShowFileContent(self.filePath)
 
     def ShowFileContent(self,filePath):
-        HttpRequestThread(config.TASK_GET_FILE_CONTENT,shellEntity=self.shellEntity,path=filePath,callBack=self.Callback_getFileContent,statusCallback=self.parent.SetStatus).start()
+        HttpRequestThread(config.TASK_GET_FILE_CONTENT,shellEntity=self.shellEntity,path=filePath,callBack=self.Callback_getFileContent,statusCallback=self.parent.SetHttpStatus).start()
 
     def Callback_getFileContent(self,resultCode,resultContent):
         if resultCode:

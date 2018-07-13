@@ -6,15 +6,16 @@
 @file: Dialog.py
 @time: 2018/4/2 22:10
 """
-import wx,sys,datetime
+import sys
 
-import xml.dom.minidom as xmldom
+import wx,datetime
 
 sys.path.append("..")
 
 from utils import config
 from utils.dbHelper import DatabaseHelper
 from utils.entity import *
+from utils.reGeorgSocksProxy import SocksProxy
 
 class ShellManageDialog(wx.Dialog):
     def __init__(
@@ -200,6 +201,8 @@ class TunnelSettingDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=title, pos=wx.DefaultPosition,
                            size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE)
 
+        self.parent=parent
+
         self.shellEntity=shellEntity
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
@@ -266,26 +269,28 @@ class TunnelSettingDialog(wx.Dialog):
             wx.MessageBox('内网代理侦听IP未设置')
             return
 
-        return TunnelSettingEntity(tunnelPort, tunnelIP)
+        return TunnelSettingEntity(tunnelPort, tunnelIP,self.shellEntity.shell_id)
 
-    # Virtual event handlers, overide them in your derived class
     def OnStartBtnClick(self, event):
 
         tunnelSettingEntity = self.getSettingResult()
 
-        isSetted = DatabaseHelper.getTunnelSettingEntityByShellID(self.shellEntity.shellID)
+        isSetted = DatabaseHelper.getTunnelSettingEntityByShellID(self.shellEntity.shell_id)
         if isSetted:
             DatabaseHelper.updateTunnelSettingEntity(tunnelSettingEntity)
         else:
             DatabaseHelper.saveTunnelSettingEntity(tunnelSettingEntity)
 
+        tunnelUrl='http://192.168.127.154:8080/examples/jsp/tunnel.jsp'
+
+        SocksProxy(self.parent.parent.SetTunnelStatus,tunnelSettingEntity.port,tunnelSettingEntity.IP,tunnelUrl).start()
+
         self.SetReturnCode(1)
         self.Destroy()
         event.Skip()
 
-        event.Skip()
-
     def OnCancelBtnClick(self, event):
+        self.Destroy()
         event.Skip()
 
 
@@ -318,7 +323,8 @@ class HttpSettingDialog(wx.Dialog):
         self.m_staticText31.Wrap(-1)
         bSizer8.Add(self.m_staticText31, 0, wx.ALL, 5)
 
-        self.textCtrlUserAgent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(600, 100), wx.TE_MULTILINE)
+        self.textCtrlUserAgent = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(600, 100), wx.TE_MULTILINE|wx.TE_RICH|wx.TE_PROCESS_ENTER)
+
         bSizer8.Add(self.textCtrlUserAgent, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer8, 0, wx.EXPAND, 5)
@@ -330,7 +336,7 @@ class HttpSettingDialog(wx.Dialog):
         bSizer7.Add(self.m_staticText4, 0, wx.ALL, 5)
 
         self.textCtrlCookie = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(600, 100),
-                                          wx.TE_MULTILINE | wx.VSCROLL)
+                                          wx.TE_MULTILINE | wx.VSCROLL|wx.TE_RICH|wx.TE_PROCESS_ENTER)
         bSizer7.Add(self.textCtrlCookie, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer7, 0, wx.EXPAND, 5)
@@ -437,7 +443,7 @@ class DatabaseSettingDialog(wx.Dialog):
         bSizer6.Add(self.m_staticText2, 0, wx.ALL, 5)
 
         self.textCtrlDatabaseSetting = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                                   wx.TE_MULTILINE)
+                                                   wx.TE_MULTILINE|wx.TE_RICH|wx.TE_PROCESS_ENTER)
         bSizer6.Add(self.textCtrlDatabaseSetting, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizer4.Add(bSizer6, 1, wx.EXPAND, 5)

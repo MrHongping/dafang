@@ -42,7 +42,7 @@ class VirtualConsole(wx.Panel):
 
     def OnInit(self):
         HttpRequestThread(config.TASK_GET_START, shellEntity=self.shellEntity, callBack=self.CallBack_getStart,
-                          statusCallback=self.parent.SetStatus).start()
+                          statusCallback=self.parent.SetHttpStatus).start()
 
     def CallBack_getStart(self, resultCode, resultContent):
 
@@ -110,7 +110,7 @@ class VirtualConsole(wx.Panel):
 
                 self.charCount += len(self.inputCommand.decode('utf-8'))
 
-                HttpRequestThread(config.TASK_EXCUTE_COMMAND,path=self.currentPath,shellEntity=self.shellEntity,commandZ1=self.commandZ1,commandZ2=self.commandZ2.format(self.currentPath,self.inputCommand),command=self.inputCommand,callBack=self.Callback_excuteCommand,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(config.TASK_EXCUTE_COMMAND,path=self.currentPath,shellEntity=self.shellEntity,commandZ1=self.commandZ1,commandZ2=self.commandZ2.format(self.currentPath,self.inputCommand),command=self.inputCommand,callBack=self.Callback_excuteCommand,statusCallback=self.parent.SetHttpStatus).start()
 
         elif key==ord('X'):
             if event.ControlDown():

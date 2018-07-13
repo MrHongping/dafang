@@ -66,3 +66,11 @@ class DBConnectEntity:
         self.dbAddress=dbAddress
         self.dbUsername=dbUsername
         self.dbPassword=dbPassword
+
+class SessionEntity:
+
+    def __init__(self,sessionID,sessionStatus='',sessionMessage='',sessionBelong=''):
+        self.sessionID=sessionID
+        self.sessionStatus=sessionStatus
+        self.sessionMessage=sessionMessage
+        self.sessionBelong=sessionBelong

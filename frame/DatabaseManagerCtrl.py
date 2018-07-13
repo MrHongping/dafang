@@ -85,7 +85,7 @@ class DatabaseManager(wx.Panel):
             if connectInfo:
                 HttpRequestThread(action=config.TASK_GET_DATABASES, connectInfo=connectInfo,
                                   shellEntity=self.shellEntity, callBack=self.Callback_getDatabases,
-                                  statusCallback=self.parent.SetStatus).start()
+                                  statusCallback=self.parent.SetHttpStatus).start()
 
     def Callback_getDatabases(self,resultCode, resultContent):
         if resultCode:
@@ -115,7 +115,7 @@ class DatabaseManager(wx.Panel):
 
             databaseName = self.treeCtrlDatabaseShow.GetItemText(self.selectedItem)
 
-            HttpRequestThread(action=config.TASK_GET_TABLES,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,callBack=self.Callback_getTables,statusCallback=self.parent.SetStatus).start()
+            HttpRequestThread(action=config.TASK_GET_TABLES,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,callBack=self.Callback_getTables,statusCallback=self.parent.SetHttpStatus).start()
 
         elif itemType=='table':
 
@@ -125,7 +125,7 @@ class DatabaseManager(wx.Panel):
 
             HttpRequestThread(action=config.TASK_GET_COLUMNS, shellEntity=self.shellEntity, connectInfo=connectInfo,
                               databaseName=databaseName,tableName=tableName, callBack=self.Callback_getColumns,
-                              statusCallback=self.parent.SetStatus).start()
+                              statusCallback=self.parent.SetHttpStatus).start()
 
             self.comboBoxSqlQueryString.SetValue('SELECT *FROM {0} ORDER BY 1 DESC'.format(tableName))
 
@@ -174,7 +174,7 @@ class DatabaseManager(wx.Panel):
 
         queryString=self.comboBoxSqlQueryString.GetValue()
 
-        HttpRequestThread(action=config.TASK_EXCUTE_SQLQUERY,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,queryString=queryString,callBack=self.Callback_excuteSqlQuery,statusCallback=self.parent.SetStatus).start()
+        HttpRequestThread(action=config.TASK_EXCUTE_SQLQUERY,shellEntity=self.shellEntity,connectInfo=connectInfo,databaseName=databaseName,queryString=queryString,callBack=self.Callback_excuteSqlQuery,statusCallback=self.parent.SetHttpStatus).start()
 
     def Callback_excuteSqlQuery(self,resultCode, resultContent):
         if resultCode:

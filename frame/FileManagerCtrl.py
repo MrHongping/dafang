@@ -119,7 +119,7 @@ class FileManager(wx.Panel):
         self.staticTextHost.SetLabelText(self.shellEntity.shell_host)
 
         # 返回当前路径
-        HttpRequestThread(config.TASK_GET_START,shellEntity=self.shellEntity,callBack=self.CallBack_getStart,statusCallback=self.parent.SetStatus).start()
+        HttpRequestThread(config.TASK_GET_START,shellEntity=self.shellEntity,callBack=self.CallBack_getStart,statusCallback=self.parent.SetHttpStatus).start()
 
     def hasChild(self,treeCtrl,parentItem,childItemText):
 
@@ -289,7 +289,7 @@ class FileManager(wx.Panel):
         if menuSelectItemText == u'删除':
             HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY, shellEntity=self.shellEntity,
                               path=path + self.separator + directoryName, callBack=None,
-                              statusCallback=self.parent.SetStatus).start()
+                              statusCallback=self.parent.SetHttpStatus).start()
         self.UpdateFileTree(self.selectedFileTreeItem)
         event.Skip()
 
@@ -335,10 +335,10 @@ class FileManager(wx.Panel):
 
             if dlg.ShowModal() == wx.ID_OK:
                 localPath = dlg.GetPath()
-                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(action=config.TASK_DOWNLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,localPath=localPath,fileLength=fileLength,callBack=None,statusCallback=self.parent.SetHttpStatus).start()
 
         if menuSelectItemText ==u'删除':
-            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,callBack=None,statusCallback=self.parent.SetStatus).start()
+            HttpRequestThread(action=config.TASK_DELETE_FILE_OR_DIRECTORY,shellEntity=self.shellEntity,path=remotePath+self.separator+fileName,callBack=None,statusCallback=self.parent.SetHttpStatus).start()
             self.UpdateFileTree(self.selectedFileTreeItem)
 
         if menuSelectItemText==u'编辑':
@@ -356,7 +356,7 @@ class FileManager(wx.Panel):
             with open(localPath,'rb') as file:
                 content=file.read()
             if content:
-                HttpRequestThread(action=config.TASK_UPLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+localFilename,content=content.encode('hex'),callBack=None,statusCallback=self.parent.SetStatus).start()
+                HttpRequestThread(action=config.TASK_UPLOAD_FILE,shellEntity=self.shellEntity,path=remotePath+self.separator+localFilename,content=content.encode('hex'),callBack=None,statusCallback=self.parent.SetHttpStatus).start()
 
     def ClickFileTreeItemByName(self,itemName):
 
@@ -376,7 +376,7 @@ class FileManager(wx.Panel):
 
         self.comboBoxPath.SetValue(path)
 
-        HttpRequestThread(config.TASK_GET_DIRECTORY_CONTENT,shellEntity=self.shellEntity,path=path,callBack=self.Callback_getDirectoryContent,statusCallback=self.parent.SetStatus).start()
+        HttpRequestThread(config.TASK_GET_DIRECTORY_CONTENT,shellEntity=self.shellEntity,path=path,callBack=self.Callback_getDirectoryContent,statusCallback=self.parent.SetHttpStatus).start()
 
     def Callback_getDirectoryContent(self,resultCode,resultContent):
 
